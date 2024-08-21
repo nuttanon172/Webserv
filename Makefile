@@ -6,20 +6,27 @@ CXXFLAGS  = -Wall -Wextra -Werror -std=c++98
 
 OBJ_DIR   = obj
 
-HEADERS   = iter.hpp
+# Update HEADERS to include the single main header file
+HEADERS   = config.hpp util.hpp
 
-SRCS      = main.cpp
+# Add all the necessary .cpp files to SRCS
+SRCS      = main.cpp config.cpp util.cpp
 
-OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
+# Create object files from the source files
+OBJS      = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
+# Build the executable
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 
+# Rule for creating object files in the OBJ_DIR directory
 $(OBJ_DIR)/%.o: %.cpp $(HEADERS)
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Standard Makefile rules
 .PHONY: all clean fclean re
+
 all: $(NAME)
 
 clean:
