@@ -14,6 +14,9 @@
 #include <sys/time.h>
 #include <sstream>
 #include <map>
+#include <vector>
+#include "ServerBlock.hpp"
+#include "Client.hpp"
 
 std::string ft_itos(int nbr);
 

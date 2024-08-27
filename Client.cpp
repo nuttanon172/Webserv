@@ -14,3 +14,8 @@ void Client::clearClient()
 {
 
 }
+
+time_t Client::getLastTime()
+{
+	return _last_time;
+}
