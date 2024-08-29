@@ -8,10 +8,13 @@ private:
 	int server_fd;
 	int new_socket;
 	int max_socket;
+	Request server_req;
 	struct sockaddr_in address;
 	ServerBlock &serveBlock;
 	fd_set current_sockets;
 	fd_set ready_sockets;
+	fd_set listen_sockets;
+	bool checkRequest(int socket);
 	//std::vector<ServerBlock> _server_vec;
 	//std::map<int, ServerBlock> _server_map;
 	std::map<int, Client *> _client_map;
@@ -26,7 +29,7 @@ public:
 	void createSocket();
 	void identifySocket(int PORT);
 	void checkClient();
-	int acceptNewConnection();
+	void acceptNewConnection(int listen_sockets);
 	void closeSocket();
 };
 

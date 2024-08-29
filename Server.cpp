@@ -20,9 +20,9 @@ void Server::initServer()
 
 void Server::mainSever()
 {
-	FD_ZERO(&current_sockets); //init set
+	FD_ZERO(&current_sockets); // init set
 	FD_ZERO(&ready_sockets);
-
+	FD_ZERO(&listen_sockets);
 	createSocket();
 }
 
@@ -73,12 +73,13 @@ void Server::identifySocket(int PORT)
 		close(server_fd);
 		exit(EXIT_FAILURE);
 	}
-	FD_SET(server_fd, &current_sockets); /* add new socket to set */
+	FD_SET(server_fd, &listen_sockets); /* add new socket to set */
+	if (server_fd > max_socket)
+		max_socket = server_fd;
 }
 
 void Server::checkClient()
 {
-	max_socket = server_fd;
 	while (1)
 	{
 		ready_sockets = current_sockets; /* because select is destructive */
@@ -87,32 +88,29 @@ void Server::checkClient()
 			perror("Select Error");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < max_socket; i++)
+		for (int socket = 3; socket < max_socket; socket++)
 		{
-			if (FD_ISSET(i, &ready_sockets))
+			if (FD_ISSET(socket, &ready_sockets))
 			{
-				if (i == server_fd)
-				{
-					int client_socket = this->acceptNewConnection();
-					FD_SET(client_socket, &current_sockets);
-					if (client_socket > max_socket)
-						max_socket = client_socket;
-				}
+				if (FD_ISSET(socket, &listen_sockets))
+					this->acceptNewConnection(socket);
 				else
 				{
-					_client_map[i]->updateTime();
-					if (time(NULL) - _client_map[i]->getLastTime() > 5)
-						max_socket--;
+					_client_map[socket]->updateTime();
+					if (time(NULL) - _client_map[socket]->getLastTime() > 5)
+						exit(0); // time out client
+					if (this->checkRequest(socket))
+						exit(0);
 				}
 			}
 		}
 	}
 }
 
-int Server::acceptNewConnection()
+void Server::acceptNewConnection(int listen_sockets)
 {
 	int addrlen = sizeof(address);
-	new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+	new_socket = accept(listen_sockets, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 	if (new_socket < 0)
 	{
 		perror("Accept ERROR");
@@ -126,7 +124,27 @@ int Server::acceptNewConnection()
 		close(new_socket);
 		exit(EXIT_FAILURE);
 	}
-	return new_socket;
+	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
+	if (new_socket > max_socket)
+		max_socket = new_socket;
+}
+
+bool Server::checkRequest(int socket)
+{
+	char buffer[10000];
+	int size;
+
+	while (true)
+	{
+		size = recv(socket, buffer, sizeof(buffer), 0);
+		if (size < 0)
+			break ;
+		else if (!size)
+			return (false); // no message -- close connection
+		buffer[size] = '\0';
+		// write to request string stream
+	}	
+	return (true);
 }
 
 void Server::closeSocket()
