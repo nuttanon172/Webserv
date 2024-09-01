@@ -124,6 +124,7 @@ void Server::acceptNewConnection(int listen_sockets)
 		close(new_socket);
 		exit(EXIT_FAILURE);
 	}
+	client_map[new_socket] = new Client(new_socket, listen_sockets, serveBlock);
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
@@ -143,6 +144,7 @@ bool Server::checkRequest(int socket)
 			return (false); // no message -- close connection
 		buffer[size] = '\0';
 		// write to request string stream
+		client_map[new_socket]->getRequest().writeStream(buffer, size);
 	}	
 	return (true);
 }

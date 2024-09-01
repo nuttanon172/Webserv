@@ -20,8 +20,10 @@
 #include <sstream>
 #include <map>
 #include <vector>
+#include <sstream>
 #include "ServerBlock.hpp"
 #include "Client.hpp"
+#include "HTTPStatus.hpp"
 #include "Request.hpp"
 
 std::string ft_itos(int nbr);

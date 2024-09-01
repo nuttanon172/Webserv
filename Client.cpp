@@ -1,8 +1,17 @@
 #include "Client.hpp"
 
+Client::Client(int write_fd, int read_fd, std::vector<ServerBlock>  &serverBlocks)
+{
+	
+}
+
 void Client::buildResponse()
 {
 
+}
+
+Request &Client::getRequest(){
+	return req;
 }
 
 void Client::updateTime()

@@ -10,14 +10,14 @@ private:
 	int max_socket;
 	Request server_req;
 	struct sockaddr_in address;
-	ServerBlock &serveBlock;
+	std::vector<ServerBlock> serveBlock;
 	fd_set current_sockets;
 	fd_set ready_sockets;
 	fd_set listen_sockets;
 	bool checkRequest(int socket);
 	//std::vector<ServerBlock> _server_vec;
 	//std::map<int, ServerBlock> _server_map;
-	std::map<int, Client *> _client_map;
+	std::map<int, Client *> client_map;
 public:
 	Server();
 	Server(const Server &obj);

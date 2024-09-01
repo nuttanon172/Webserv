@@ -8,8 +8,12 @@ class Client
 private:
 	time_t _last_time;
 	int socket;
+	Request req;
+	std::vector<ServerBlock> serveBlock;
 
 public:
+	Request &getRequest();
+	Client(int write_fd, int read_fd, std::vector<ServerBlock>  &serverBlocks);
 	void buildResponse();
 	void updateTime();
 	void clearClient();
