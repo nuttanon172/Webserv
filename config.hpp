@@ -8,7 +8,7 @@
 // Define data structures
 struct Location {
     std::string path;
-    std::vector<std::string> allow_methods;
+    std::map<std::string , bool> allow_methods;//--> maps string {GET , TRUE} post delete
     bool autoindex;
     std::string index;
     std::string return_path;
