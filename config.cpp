@@ -11,7 +11,7 @@ std::vector<ServerConfig> servers;
 bool parseConfigFile(const std::string& filename) {
     std::ifstream config_file(filename.c_str());
     if (!config_file.is_open()) {
-        std::cout << "Failed to open config file: " << filename << std::endl;
+        std::cerr << "Failed to open config file: " << filename << std::endl;
         return false;
     }
 
@@ -22,6 +22,28 @@ bool parseConfigFile(const std::string& filename) {
     bool in_location_block = false;
 
     while (std::getline(config_file, line)) {
+        // Remove comments (everything after '#')
+        std::size_t comment_pos = line.find('#');
+        if (comment_pos != std::string::npos) {
+            line = line.substr(0, comment_pos);
+        }
+
+        // Manually trim whitespace from the line
+        std::string::iterator it = line.begin();
+        while (it != line.end() && std::isspace(*it)) {
+            it = line.erase(it);
+        }
+        if (line.empty()) continue;
+        std::string::reverse_iterator rit = line.rbegin();
+        while (rit != line.rend() && std::isspace(*rit)) {
+            rit = std::string::reverse_iterator(line.erase((++rit).base()));
+        }
+
+        // Remove semicolon if present
+        if (!line.empty() && line[line.size() - 1] == ';') {
+            line = line.substr(0, line.size() - 1);
+        }
+
         std::istringstream iss(line);
         std::string key;
         iss >> key;
@@ -42,6 +64,16 @@ bool parseConfigFile(const std::string& filename) {
                 current_location = Location();
             }
             iss >> current_location.path;
+
+            // Initialize all HTTP methods to false
+            current_location.allow_methods["GET"] = false;
+            current_location.allow_methods["POST"] = false;
+            current_location.allow_methods["DELETE"] = false;
+            current_location.allow_methods["PUT"] = false;
+            current_location.allow_methods["HEAD"] = false;
+            current_location.allow_methods["OPTIONS"] = false;
+            current_location.allow_methods["PATCH"] = false;
+            // Add more methods if needed
         } else if (key == "listen") {
             iss >> current_server.listen;
         } else if (key == "server_name") {
@@ -68,7 +100,11 @@ bool parseConfigFile(const std::string& filename) {
         } else if (key == "allow_methods") {
             std::string method;
             while (iss >> method) {
-                current_location.allow_methods.push_back(method);
+                if (current_location.allow_methods.find(method) != current_location.allow_methods.end()) {
+                    current_location.allow_methods[method] = true;  // Set the specified method to true
+                } else {
+                    std::cerr << "Warning: Unsupported HTTP method \"" << method << "\" found in config file.\n";
+                }
             }
         } else if (key == "autoindex") {
             std::string value;
@@ -113,7 +149,6 @@ bool parseConfigFile(const std::string& filename) {
     return true;
 }
 
-
 // Function to check if a directory exists (POSIX compliant)
 bool directoryExists(const std::string& path) {
     struct stat info;
@@ -126,15 +161,13 @@ bool directoryExists(const std::string& path) {
 }
 
 bool validateConfig(const ServerConfig& server) {
-    // Check if server_name contains a colon ":"
     if (server.server_name.find(':') != std::string::npos) {
         std::cerr << "Error: server_name \"" << server.server_name << "\" contains invalid character ':'\n";
         return false;
     }
 
-    // Validate each location
     for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it) {
-        std::string full_path = server.root + it->path;
+        std::string full_path = "./" + server.root + it->path;
         if (!directoryExists(full_path)) {
             std::cerr << "Error: Location root \"" << full_path << "\" does not exist\n";
             return false;
@@ -143,5 +176,4 @@ bool validateConfig(const ServerConfig& server) {
 
     return true;
 }
-
 
