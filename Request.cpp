@@ -1,5 +1,15 @@
 #include "Request.hpp"
 
+Request::Request()
+{
+
+}
+
+Request::~Request()
+{
+
+}
+
 void Request::writeStream(char *str, int size)
 {
 	if (size < 0)
@@ -7,7 +17,7 @@ void Request::writeStream(char *str, int size)
 	inputStream.write(str, size);
 }
 
-HttpStage Request::parseRequestLine(HttpStage stage)
+HttpStage Request::parseRequestLine()
 {
 	std::string buffer = "";
 	std::getline(inputStream, buffer);
@@ -16,9 +26,10 @@ HttpStage Request::parseRequestLine(HttpStage stage)
 	stream >> method;
 	stream >> path;
 	stage = HEADER;
+	return (stage);
 }
 
-HttpStage Request::parseHttpHeaders(HttpStage stage)
+HttpStage Request::parseHttpHeaders()
 {
 	std::string buffer = "";
 	std::size_t colon;
@@ -26,7 +37,7 @@ HttpStage Request::parseHttpHeaders(HttpStage stage)
 	std::string value;
 	
 	std::getline(inputStream, buffer);
-	while (buffer.length() && buffer != "\r\n") // '\r\n' end of header
+	while (buffer.length() && buffer != "\r\n") // '\r\n' end line
 	{
 		colon = buffer.find_first_of(':');
 		if (colon == std::string::npos)
@@ -44,33 +55,30 @@ HttpStage Request::parseHttpHeaders(HttpStage stage)
 		header_map[key] = value;
 		std::getline(inputStream, buffer);
 	}
+	return (stage);
 }
 
-HttpStage Request::parseBody(HttpStage stage)
+HttpStage Request::parseBody()
 {
 	std::string buffer = "";
-	std::stringstream ss;
-	ss << inputStream.rdbuf();
-	std::getline(ss, buffer);
+	body << inputStream.str();
+	std::getline(inputStream, buffer);
 	if (buffer != boundaryStart)
 		stage = ERROR;
-	while (std::getline(ss, buffer))
+	while (std::getline(inputStream, buffer))
 	{
 		if (buffer == boundaryEnd)
 			return (ROUTER);
 	}
+	return (stage);
 }
 
 bool Request::isMultipart()
 {
 	if (header_map["Content-Type"].empty())
-	{
-		stage = ERROR;
-	}
+		return false;
 	else if (header_map["Content-Type"].substr(0, 28) != "multipart/form-data; boundary")
-	{
-		stage = ERROR;
-	}
+		return false;
 	size_t pos = header_map["Content-Type"].find("boundary=");
 	if (pos != std::string::npos)
 	{

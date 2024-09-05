@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <csignal>
 #include <sys/socket.h> 
 #include <netinet/in.h>
 #include <stdio.h>
@@ -23,10 +24,10 @@
 #include <vector>
 #include <sstream>
 #include "Server.hpp"
-//#include "Client.hpp"
 #include "HTTPStatus.hpp"
+#include "Request.hpp"
+#include "Client.hpp"
 #include "config.hpp"
-//#include "Request.hpp"
 #include "util.hpp"
 
 std::string ft_itos(int nbr);

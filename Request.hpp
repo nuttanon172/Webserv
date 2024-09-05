@@ -3,24 +3,28 @@
 
 #include "WebServer.hpp"
 
+enum HttpStage;
+
 class Request
 {
-	private:
-		std::stringstream inputStream;
-		std::string method;
-		std::string path;
-		std::string body;
-		std::string boundaryStart;
-		std::string boundaryEnd;
-		std::map<std::string, std::string> header_map;
-		HttpStage stage;
+private:
+	std::stringstream inputStream;
+	std::stringstream body;
+	std::string method;
+	std::string path;
+	std::string boundaryStart;
+	std::string boundaryEnd;
+	std::map<std::string, std::string> header_map;
+	HttpStage stage;
 
-	public:
-		void writeStream(char *str, int size);
-		HttpStage parseRequestLine(HttpStage stage);
-		HttpStage parseHttpHeaders(HttpStage stage);
-		HttpStage parseBody(HttpStage stage);
-		bool isMultipart();
+public:
+	Request();
+	~Request();
+	void writeStream(char *str, int size);
+	HttpStage parseRequestLine();
+	HttpStage parseHttpHeaders();
+	HttpStage parseBody();
+	bool isMultipart();
 };
 
 #endif

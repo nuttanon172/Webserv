@@ -9,11 +9,6 @@ Server::~Server()
 {
 }
 
-Server &Server::operator=(const Server &obj)
-{
-	return *this;
-}
-
 void Server::initServer()
 {
 	max_socket = 0;
@@ -132,7 +127,7 @@ void Server::acceptNewConnection(int listen_sockets)
 		close(new_socket);
 		exit(EXIT_FAILURE);
 	}
-	//client_map[new_socket] = new Client(new_socket, listen_sockets, serveBlock);
+	client_map[new_socket] = new Client(new_socket, serverBlock);
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
@@ -163,6 +158,11 @@ bool Server::checkRequest(int socket)
 
 void Server::closeSocket()
 {
-	close(server_fd);
-	close(new_socket);
+	for (int i = 0; i < max_socket; i++)
+		close(i);
+}
+
+void Server::shutdown()
+{
+	closeSocket();
 }

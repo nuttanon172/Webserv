@@ -3,6 +3,7 @@ NAME      = webserv
 CXX       = c++
 
 #CXXFLAGS  = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS  = -std=c++98
 
 OBJ_DIR   = obj
 
@@ -10,7 +11,10 @@ OBJ_DIR   = obj
 
 SRCS      = main.cpp \
 			config.cpp \
-			util.cpp
+			util.cpp \
+			Server.cpp \
+			Request.cpp \
+			Client.cpp
 
 OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 

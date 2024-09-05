@@ -3,6 +3,10 @@
 
 #include "WebServer.hpp"
 
+struct Location;
+struct ServerConfig;
+class Client;
+
 class Server{
 private:
 	int server_fd;
@@ -14,14 +18,14 @@ private:
 	fd_set ready_sockets;
 	fd_set listen_sockets;
 	bool checkRequest(int socket);
-	//std::map<int, Client *> client_map;
+	std::map<int, Client *> client_map;
 	//Request server_req;
 public:
 	//Server();
 	Server(const std::vector<ServerConfig> &obj);
 	//Server(std::vector<ServerBlock> &serveBlock);
 	~Server();
-	Server &operator=(const Server &obj);
+	//Server &operator=(const Server &obj);
 	void initServer();
 	void mainSever();
 	void createSocket();
@@ -29,6 +33,7 @@ public:
 	void checkClient();
 	void acceptNewConnection(int listen_sockets);
 	void closeSocket();
+	void shutdown();
 };
 
 #endif

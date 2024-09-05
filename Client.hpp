@@ -3,20 +3,23 @@
 
 #include "WebServer.hpp"
 
+struct ServerConfig;
+class Request;
+
 class Client
 {
 private:
-	time_t _last_time;
+	time_t last_time;
 	int socket;
-	Request req;
-	std::vector<ServerBlock> serveBlock;
+	Request *req;
+	std::vector<ServerConfig> serverBlock;
 
 public:
-	Request &getRequest();
-	Client(int write_fd, int read_fd, std::vector<ServerBlock>  &serverBlocks);
+	Request *getRequest();
+	Client(int socket, std::vector<ServerConfig> &paramBlocks);
+	~Client();
 	void buildResponse();
 	void updateTime();
-	void clearClient();
 	time_t getLastTime();
 };
 
