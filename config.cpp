@@ -120,9 +120,7 @@ bool parseConfigFile(const std::string& filename, std::vector<ServerConfig> &ser
                 } else {
                      current_server.index.push_back(path);
                 //iss >> current_server.index;
-                }
-
-               
+                } 
             }
           
         } else if (key == "error_page") {

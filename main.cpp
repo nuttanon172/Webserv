@@ -4,7 +4,7 @@ Server *serverHandler;
 
 void signalHandler(int signal) {
 	(void)signal;
-	serverHandler->shutdown();
+	serverHandler->shutdownServer();
 	std::cout << GREEN << "Webserver shutting down...\n" << DEFAULT;
 	exit(EXIT_SUCCESS);
 }
@@ -17,7 +17,7 @@ int main(int ac, char **av)
 	std::signal(SIGINT, signalHandler);
 	if (ac > 2)
 	{
-		std::cout << "./webserv or ./webserv \"config_file\"";
+		std::cerr << "Run: ./webserv or ./webserv \"config_file\"\n";
 		return EXIT_FAILURE;
 	}
 	av[1] ? pathConfig = av[1] : pathConfig = "./default.config";
@@ -30,4 +30,6 @@ int main(int ac, char **av)
 	/* Start Server here*/
 	Server mainServer(servers);
 	serverHandler = &mainServer;
+	mainServer.startServer();
+	return EXIT_SUCCESS;
 }

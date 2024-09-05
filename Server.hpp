@@ -27,13 +27,13 @@ public:
 	~Server();
 	//Server &operator=(const Server &obj);
 	void initServer();
-	void mainSever();
+	void startServer();
 	void createSocket();
 	void identifySocket(int PORT);
 	void checkClient();
 	void acceptNewConnection(int listen_sockets);
 	void closeSocket();
-	void shutdown();
+	void shutdownServer();
 };
 
 #endif

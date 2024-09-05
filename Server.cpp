@@ -14,13 +14,13 @@ void Server::initServer()
 	max_socket = 0;
 }
 
-void Server::mainSever()
+void Server::startServer()
 {
 	FD_ZERO(&current_sockets); // init set
 	FD_ZERO(&ready_sockets);
 	FD_ZERO(&listen_sockets);
 	createSocket();
-	//checkClient();
+	checkClient();
 }
 
 void Server::createSocket()
@@ -60,6 +60,8 @@ void Server::createSocket()
 
 void Server::identifySocket(int PORT)
 {
+	struct sockaddr_in address;
+
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -99,6 +101,7 @@ void Server::checkClient()
 					this->acceptNewConnection(socket);
 				else
 				{
+					send(socket, "<body>Hello</body>", 19, 0);
 					//client_map[socket]->updateTime();
 					//if (time(NULL) - client_map[socket]->getLastTime() > 5)
 					//	exit(0); // time out client
@@ -159,10 +162,14 @@ bool Server::checkRequest(int socket)
 void Server::closeSocket()
 {
 	for (int i = 0; i < max_socket; i++)
+	{
+		FD_CLR(i, &listen_sockets);
+		FD_CLR(i, &current_sockets);
 		close(i);
+	}
 }
 
-void Server::shutdown()
+void Server::shutdownServer()
 {
 	closeSocket();
 }
