@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(ServerBlock &serveBlock) : serveBlock(serveBlock)
+Server::Server(std::vector<ServerBlock> &serveBlock) : serveBlock(serveBlock)
 {
 }
 
@@ -31,8 +31,9 @@ void Server::createSocket()
 	int enable = 1;
 
 	// Socket for each port
-	std::vector<int>::iterator it = serveBlock.getPort().begin();
-	for (; it != serveBlock.getPort().end(); it++)
+	std::vector<ServerBlock>::iterator block_it = serveBlock.begin();
+	std::vector<int>::iterator port_it = block_it->getPort().begin();
+	for (; block_it != serveBlock.end(); block_it++)
 	{
 		server_fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (server_fd < 0)
@@ -52,7 +53,8 @@ void Server::createSocket()
 			close(server_fd);
 			exit(EXIT_FAILURE);
 		}
-		identifySocket(*it);
+		identifySocket(*port_it);
+		port_it++;
 	}
 }
 
@@ -94,14 +96,14 @@ void Server::checkClient()
 			{
 				if (FD_ISSET(socket, &listen_sockets))
 					this->acceptNewConnection(socket);
-				else
-				{
-					_client_map[socket]->updateTime();
-					if (time(NULL) - _client_map[socket]->getLastTime() > 5)
-						exit(0); // time out client
-					if (this->checkRequest(socket))
-						exit(0);
-				}
+				//else
+				//{
+				//	_client_map[socket]->updateTime();
+				//	if (time(NULL) - _client_map[socket]->getLastTime() > 5)
+				//		exit(0); // time out client
+				//	if (this->checkRequest(socket))
+				//		exit(0);
+				//}
 			}
 		}
 	}
@@ -124,10 +126,14 @@ void Server::acceptNewConnection(int listen_sockets)
 		close(new_socket);
 		exit(EXIT_FAILURE);
 	}
-	client_map[new_socket] = new Client(new_socket, listen_sockets, serveBlock);
+	//client_map[new_socket] = new Client(new_socket, listen_sockets, serveBlock);
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
+	std::cout << "new_socket = " << new_socket << '\n';
+	std::cout << "max_socket = " << max_socket << '\n';
+	std::cout << "Recieve Request...\n";
+
 }
 
 bool Server::checkRequest(int socket)
@@ -144,7 +150,7 @@ bool Server::checkRequest(int socket)
 			return (false); // no message -- close connection
 		buffer[size] = '\0';
 		// write to request string stream
-		client_map[new_socket]->getRequest().writeStream(buffer, size);
+		//client_map[new_socket]->getRequest().writeStream(buffer, size);
 	}	
 	return (true);
 }

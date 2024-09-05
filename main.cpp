@@ -1,21 +1,35 @@
-#include "Server.hpp"
+//#include "WebServer.hpp"
+#include "Config.hpp"
+#include "LocationBlock.hpp"
+#include "ServerBlock.hpp"
 
-int main()
+int main(int ac, char **av)
 {
-	ServerBlock serveBlock;
-	Server mainServer(serveBlock);
+	std::string pathToConfigFile;
+
+	if (ac > 2)
+	{
+		std::cout << "./webserv or ./webserv \"config_file\"";
+		return EXIT_FAILURE;
+	}
+	ac == 2 ? pathToConfigFile = av[1] : pathToConfigFile = "./default.conf";
 
 	/* Example config */
-	serveBlock._portVec = {9001, 9002};
-	serveBlock._severName = "localhost";
-	serveBlock._fullName = {"localhost:9001", "localhost:9002"};
-	serveBlock._hostIP = 16777343;
-	serveBlock._root = "docs/webA";
-	serveBlock._clientMaxBodySize = 0;
-	serveBlock._indexVec = {"index.html", "indexA.html"};
-	serveBlock._errorMap.insert(std::pair<int, std::string>(404, "default-error/404.html"));
-	serveBlock._errorMap.insert(std::pair<int, std::string>(404, "default-error/404.html"));
-	serveBlock._autoIndex = true;
+	try {
+	Config config(pathToConfigFile);
+	config.DebugEverythinginConfig(config.getServerBlocks());
+	std::vector<ServerBlock> s_vec = config.getServerBlocks();
+	//Server Handler(s_vec);
+	 std::vector<ServerBlock>::iterator ptr;
+	for (ptr = s_vec.begin(); ptr < s_vec.end(); ptr++)
+		std::cout << ptr->_root << ' ' << ptr->_serverNames << '\n';
+	for (ptr = s_vec.begin(); ptr < s_vec.end(); ptr++)
+		ptr->DebugServerBlock();
 	/* Start Server here*/
-	mainServer.mainSever();
+	// Server mainServer(serveBlock);
+	}
+	catch (std::string &e)
+	{
+		std::cout << e << '\n';
+	}
 }

@@ -30,10 +30,8 @@ void Response::buildHttpStatus(int code)
 	std::cout << "<title>" << code << "-" << _status[code] << "</title>\n";
 	std::cout << "</head>\n";
 	std::cout << "<body>\n";
-	if (code < 200 || code > 299)
-		std::cout << "<h1>" << code << "</h1>\n";
-	else
-		std::cout << "<h1>Error " << code << "</h1>\n";
+	std::cout << "<h1>" << code << "</h1>\n";
+	std::cout << "<h1>Error " << code << "</h1>\n";
 	std::cout << _status[code];
 	std::cout << "</body>\n";
 	std::cout << "</html>\n";
