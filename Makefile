@@ -8,7 +8,9 @@ OBJ_DIR   = obj
 
 #HEADERS   = iter.hpp
 
-SRCS      = main.cpp
+SRCS      = main.cpp \
+			config.cpp \
+			util.cpp
 
 OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 

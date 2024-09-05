@@ -9,18 +9,16 @@ private:
 	int new_socket;
 	int max_socket;
 	struct sockaddr_in address;
-	//std::vector<ServerBlock> serveBlock;
+	std::vector<ServerConfig> serverBlock;
 	fd_set current_sockets;
 	fd_set ready_sockets;
 	fd_set listen_sockets;
 	bool checkRequest(int socket);
-	//std::vector<ServerBlock> _server_vec;
-	//std::map<int, ServerBlock> _server_map;
 	//std::map<int, Client *> client_map;
 	//Request server_req;
 public:
 	//Server();
-	//Server(const Server &obj);
+	Server(const std::vector<ServerConfig> &obj);
 	//Server(std::vector<ServerBlock> &serveBlock);
 	~Server();
 	Server &operator=(const Server &obj);

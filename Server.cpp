@@ -1,7 +1,8 @@
 #include "Server.hpp"
 
-Server::Server(std::vector<ServerBlock> &serveBlock) : serveBlock(serveBlock)
+Server::Server(const std::vector<ServerConfig> &obj) : serverBlock(obj)
 {
+
 }
 
 Server::~Server()
@@ -24,6 +25,7 @@ void Server::mainSever()
 	FD_ZERO(&ready_sockets);
 	FD_ZERO(&listen_sockets);
 	createSocket();
+	//checkClient();
 }
 
 void Server::createSocket()
@@ -31,30 +33,33 @@ void Server::createSocket()
 	int enable = 1;
 
 	// Socket for each port
-	std::vector<ServerBlock>::iterator block_it = serveBlock.begin();
-	std::vector<int>::iterator port_it = block_it->getPort().begin();
-	for (; block_it != serveBlock.end(); block_it++)
+	std::vector<ServerConfig>::iterator serverBlock_it = serverBlock.begin();
+	std::vector<int>::iterator port_it;
+	for (; serverBlock_it != serverBlock.end(); serverBlock_it++)
 	{
-		server_fd = socket(AF_INET, SOCK_STREAM, 0);
-		if (server_fd < 0)
+		port_it = serverBlock_it->listen_ports.begin();
+		for (; port_it != serverBlock_it->listen_ports.end(); port_it++)
 		{
-			perror("Cannot create socket");
-			exit(EXIT_FAILURE);
+			server_fd = socket(AF_INET, SOCK_STREAM, 0);
+			if (server_fd < 0)
+			{
+				perror("Cannot create socket");
+				exit(EXIT_FAILURE);
+			}
+			// Enable address reuse
+			if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+			{
+				perror("setsockopt(SO_REUSEADDR) failed");
+			}
+			// SET SOCKET NONBLOCK
+			if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
+			{
+				perror("NONBLOCK ERROR");
+				close(server_fd);
+				exit(EXIT_FAILURE);
+			}
+			identifySocket(*port_it);
 		}
-		// Enable address reuse
-		if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-		{
-			perror("setsockopt(SO_REUSEADDR) failed");
-		}
-		// SET SOCKET NONBLOCK
-		if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
-		{
-			perror("NONBLOCK ERROR");
-			close(server_fd);
-			exit(EXIT_FAILURE);
-		}
-		identifySocket(*port_it);
-		port_it++;
 	}
 }
 
@@ -76,6 +81,7 @@ void Server::identifySocket(int PORT)
 		exit(EXIT_FAILURE);
 	}
 	FD_SET(server_fd, &listen_sockets); /* add new socket to set */
+	FD_SET(server_fd, &current_sockets);
 	if (server_fd > max_socket)
 		max_socket = server_fd;
 }
@@ -90,20 +96,20 @@ void Server::checkClient()
 			perror("Select Error");
 			exit(EXIT_FAILURE);
 		}
-		for (int socket = 3; socket < max_socket; socket++)
+		for (int socket = 0; socket < max_socket; socket++)
 		{
 			if (FD_ISSET(socket, &ready_sockets))
 			{
 				if (FD_ISSET(socket, &listen_sockets))
 					this->acceptNewConnection(socket);
-				//else
-				//{
-				//	_client_map[socket]->updateTime();
-				//	if (time(NULL) - _client_map[socket]->getLastTime() > 5)
-				//		exit(0); // time out client
-				//	if (this->checkRequest(socket))
-				//		exit(0);
-				//}
+				else
+				{
+					//client_map[socket]->updateTime();
+					//if (time(NULL) - client_map[socket]->getLastTime() > 5)
+					//	exit(0); // time out client
+					//if (this->checkRequest(socket))
+					//	exit(0);
+				}
 			}
 		}
 	}

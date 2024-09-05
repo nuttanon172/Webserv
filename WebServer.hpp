@@ -22,17 +22,12 @@
 #include <map>
 #include <vector>
 #include <sstream>
-#include "ServerBlock.hpp"
+#include "Server.hpp"
 //#include "Client.hpp"
 #include "HTTPStatus.hpp"
+#include "config.hpp"
 //#include "Request.hpp"
-#include "Config.hpp"
-#include "LocationBlock.hpp"
-#include "ServerBlock.hpp"
-
-class Config;
-class LocationBlock;
-class ServerBlock;
+#include "util.hpp"
 
 std::string ft_itos(int nbr);
 
