@@ -29,8 +29,8 @@ public:
 	//Server &operator=(const Server &obj);
 	void initServer();
 	void startServer();
-	void createSocket();
-	void identifySocket(int PORT);
+	void initSocket();
+	void identifySocket(int port, std::string &host);
 	void checkClient();
 	void acceptNewConnection(int listen_sockets);
 	void closeSocket();

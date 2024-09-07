@@ -19,11 +19,11 @@ void Server::startServer()
 	FD_ZERO(&current_sockets); // init set
 	FD_ZERO(&ready_sockets);
 	FD_ZERO(&listen_sockets);
-	createSocket();
+	initSocket();
 	checkClient();
 }
 
-void Server::createSocket()
+void Server::initSocket()
 {
 	int enable = 1;
 
@@ -53,19 +53,20 @@ void Server::createSocket()
 				close(server_fd);
 				exit(EXIT_FAILURE);
 			}
-			identifySocket(*port_it);
+			identifySocket(*port_it, serverBlock_it->host);
 		}
 	}
 }
 
-void Server::identifySocket(int PORT)
+void Server::identifySocket(int port, std::string &host)
 {
 	struct sockaddr_in address;
 
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
+	if (host == "127.0.0.1" || host == "0.0.0.0")
+		address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(port);
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
 		perror("bind failed");
@@ -120,7 +121,6 @@ void Server::checkClient()
 					std::cout << resp;
 					send(socket, resp.c_str(), resp.size(), 0);*/
 					client_map[socket]->getResponse()->buildHttpStatus(404, socket);
-					sleep(1);
 					if (FD_ISSET(socket, &current_sockets))
 					{
 						FD_CLR(socket, &current_sockets);
@@ -140,6 +140,7 @@ void Server::checkClient()
 					status--;
 					std::cout << "status: " << status << ", message sent\n";
 					std::cout << "Max_Socket: " << max_socket << '\n' << '\n';
+					std::cout << YELLOW << "Webserver waiting for client....\n" << DEFAULT;
 				}
 			}
 		}

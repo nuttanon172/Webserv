@@ -5,7 +5,7 @@ Server *serverHandler;
 void signalHandler(int signal) {
 	(void)signal;
 	serverHandler->shutdownServer();
-	std::cout << GREEN << "Webserver shutting down...\n" << DEFAULT;
+	std::cout << RED << "\nWebserver shutting down...\n" << DEFAULT;
 	exit(EXIT_SUCCESS);
 }
 
