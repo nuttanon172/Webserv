@@ -32,11 +32,11 @@ void Response::buildHeaders()
 {
 	std::stringstream ss;
 
-	ss << "Host: localhost:" << "\r\n";
+	//ss << "Host: localhost:8002" << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	ss << "Keep-Alive: timeout=6, max=2\r\n";
-	ss << "Content-Type: " << "\r\n";
-	ss << "Content-Length: " << "\r\n";
+	ss << "Content-Type: text/html" << "\r\n\r\n";
+	//ss << "Content-Length: " << "\r\n\r\n";
 	_header = ss.str().c_str();
 }
 
@@ -45,16 +45,16 @@ void Response::buildErrorBody(int code)
 	std::stringstream ss;
 
 	ss << "<!DOCTYPE html>\n";
-	ss << "<html>\n";
+	ss << "<html lang=\"en\">\n";
 	ss << "<head>\n";
 	ss << "<title>" << code << "-" << _status[code] << "</title>\n";
 	ss << "</head>\n";
 	ss << "<body>\n";
 	ss << "<h1>" << code << "</h1>\n";
 	ss << "<h1>Error " << code << "</h1>\n";
-	ss << _status[code];
+	ss << _status[code] << '\n';
 	ss << "</body>\n";
-	ss << "</html>\n";
+	ss << "</html>\r\n";
 	_body = ss.str().c_str();
 }
 

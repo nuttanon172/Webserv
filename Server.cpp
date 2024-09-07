@@ -113,10 +113,11 @@ void Server::checkClient()
 				{
 					std::cout << "Sending to socket: " << socket << "\n";
 					checkRequest(socket);
-					/*std::string first = "HTTP/1.1 200 OK\r\n";
+					/*std::string first = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
 					std::string header = "Connection: Keep-Alive\r\n";
 					std::string body = "hello\r\n\r\n";
 					std::string resp = first + header + body;
+					std::cout << resp;
 					send(socket, resp.c_str(), resp.size(), 0);*/
 					client_map[socket]->getResponse()->buildHttpStatus(404, socket);
 					sleep(1);
@@ -132,7 +133,9 @@ void Server::checkClient()
 									new_max = i;
 							}
 							max_socket = new_max;
+							close(socket);
 						}
+						client_map.erase(socket);
 					}
 					status--;
 					std::cout << "status: " << status << ", message sent\n";
