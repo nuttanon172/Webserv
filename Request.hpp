@@ -3,8 +3,6 @@
 
 #include "WebServer.hpp"
 
-enum HttpStage;
-
 class Request
 {
 private:
@@ -15,15 +13,14 @@ private:
 	std::string boundaryStart;
 	std::string boundaryEnd;
 	std::map<std::string, std::string> header_map;
-	HttpStage stage;
 
 public:
 	Request();
 	~Request();
 	void writeStream(char *str, int size);
-	HttpStage parseRequestLine();
-	HttpStage parseHttpHeaders();
-	HttpStage parseBody();
+	bool parseRequestLine();
+	bool parseHttpHeaders();
+	bool parseBody();
 	bool isMultipart();
 };
 

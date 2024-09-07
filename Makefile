@@ -13,7 +13,9 @@ SRCS      = main.cpp \
 			config.cpp \
 			util.cpp \
 			Server.cpp \
+			HTTPStatus.cpp \
 			Request.cpp \
+			Response.cpp \
 			Client.cpp
 
 OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))

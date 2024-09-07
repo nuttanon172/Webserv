@@ -17,7 +17,7 @@ void Request::writeStream(char *str, int size)
 	inputStream.write(str, size);
 }
 
-HttpStage Request::parseRequestLine()
+bool Request::parseRequestLine()
 {
 	std::string buffer = "";
 	std::getline(inputStream, buffer);
@@ -25,11 +25,10 @@ HttpStage Request::parseRequestLine()
 
 	stream >> method;
 	stream >> path;
-	stage = HEADER;
-	return (stage);
+	return (true);
 }
 
-HttpStage Request::parseHttpHeaders()
+bool Request::parseHttpHeaders()
 {
 	std::string buffer = "";
 	std::size_t colon;
@@ -41,36 +40,30 @@ HttpStage Request::parseHttpHeaders()
 	{
 		colon = buffer.find_first_of(':');
 		if (colon == std::string::npos)
-		{
-			stage = ERROR;
-			return (stage);
-		}
+			return (false);
 		key = buffer.substr(0, colon);
 		value = buffer.substr(colon + 2, buffer.size() - (colon + 2) - 1); // -1 trim \r
 		if (!key.length() || !value.length())
-		{
-			stage = ERROR;
-			return (stage);
-		}
+			return (false);
 		header_map[key] = value;
 		std::getline(inputStream, buffer);
 	}
-	return (stage);
+	return (true);
 }
 
-HttpStage Request::parseBody()
+bool Request::parseBody()
 {
 	std::string buffer = "";
 	body << inputStream.str();
 	std::getline(inputStream, buffer);
 	if (buffer != boundaryStart)
-		stage = ERROR;
+		return (false);
 	while (std::getline(inputStream, buffer))
 	{
 		if (buffer == boundaryEnd)
-			return (ROUTER);
+			return (true);
 	}
-	return (stage);
+	return (false);
 }
 
 bool Request::isMultipart()

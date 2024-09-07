@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int socket, std::vector<ServerConfig> &paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), serverBlock(paramBlocks)
+Client::Client(int socket, std::vector<ServerConfig> &paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), resp(new Response()), serverBlock(paramBlocks)
 {
 }
 
@@ -11,15 +11,24 @@ Client::~Client()
 
 void Client::buildResponse()
 {
-	req->parseRequestLine();
-	req->parseHttpHeaders();
+	std::stringstream ss;
+
+	if (req->parseRequestLine() == false)
+		return ;
+	if (req->parseHttpHeaders() == false)
+		return ;
 	if (req->isMultipart() == true)
 		req->parseBody();
 }
 
-Request *Client::getRequest()
+Request *Client::getRequest() const
 {
 	return req;
+}
+
+Response *Client::getResponse() const
+{
+	return resp;
 }
 
 void Client::updateTime()

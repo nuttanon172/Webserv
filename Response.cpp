@@ -1,5 +1,22 @@
 #include "Response.hpp"
 
+Response::Response()
+{
+	_status = initStatus();
+	_first_line = "";
+	_header = "";
+	_body = "";
+	_message = "";
+}
+
+Response::~Response()
+{
+	_first_line = "";
+	_header = "";
+	_body = "";
+	_message = "";
+}
+
 void Response::buildHttpMessages(int code)
 {
 	buildStatusLine(code);
@@ -13,28 +30,41 @@ void Response::buildStatusLine(int code)
 
 void Response::buildHeaders()
 {
-	std::cout << "Host: " << "\n";
-	std::cout << "Connection: Keep-Alive\n";
-	std::cout << "Keep-Alive: timeout=6, max=20\n";
-	std::cout << "Content-Type: " << "\n";
-	std::cout << "Content-Length: " << "\n";
+	std::stringstream ss;
+
+	ss << "Host: localhost:" << "\r\n";
+	ss << "Connection: Keep-Alive\r\n";
+	ss << "Keep-Alive: timeout=6, max=2\r\n";
+	ss << "Content-Type: " << "\r\n";
+	ss << "Content-Length: " << "\r\n";
+	_header = ss.str().c_str();
 }
 
-void Response::buildHttpStatus(int code)
+void Response::buildErrorBody(int code)
+{
+	std::stringstream ss;
+
+	ss << "<!DOCTYPE html>\n";
+	ss << "<html>\n";
+	ss << "<head>\n";
+	ss << "<title>" << code << "-" << _status[code] << "</title>\n";
+	ss << "</head>\n";
+	ss << "<body>\n";
+	ss << "<h1>" << code << "</h1>\n";
+	ss << "<h1>Error " << code << "</h1>\n";
+	ss << _status[code];
+	ss << "</body>\n";
+	ss << "</html>\n";
+	_body = ss.str().c_str();
+}
+
+void Response::buildHttpStatus(int code, int socket)
 {
 	buildStatusLine(code);
 	buildHeaders();
-	std::cout << "<!DOCTYPE html>\n";
-	std::cout << "<html>\n";
-	std::cout << "<head>\n";
-	std::cout << "<title>" << code << "-" << _status[code] << "</title>\n";
-	std::cout << "</head>\n";
-	std::cout << "<body>\n";
-	std::cout << "<h1>" << code << "</h1>\n";
-	std::cout << "<h1>Error " << code << "</h1>\n";
-	std::cout << _status[code];
-	std::cout << "</body>\n";
-	std::cout << "</html>\n";
+	buildErrorBody(code);
+	std::string _message = _first_line + _header + _body;
+	send(socket, _message.c_str(), _message.size(), 0);
 }
 
 void Response::buildBody()
@@ -45,8 +75,4 @@ void Response::buildIndex()
 {
 }
 
-void Response::buildErrorBody()
-{
-}
-
-bool isDirectory(const std::string &path) {}
+//bool isDirectory(const std::string &path) {}

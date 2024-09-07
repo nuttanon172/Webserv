@@ -14,6 +14,7 @@ private:
 	int max_socket;
 	struct sockaddr_in address;
 	std::vector<ServerConfig> serverBlock;
+	std::vector<int> socketVec;
 	fd_set current_sockets;
 	fd_set ready_sockets;
 	fd_set listen_sockets;

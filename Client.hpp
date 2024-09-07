@@ -5,6 +5,7 @@
 
 struct ServerConfig;
 class Request;
+class Response;
 
 class Client
 {
@@ -12,10 +13,12 @@ private:
 	time_t last_time;
 	int socket;
 	Request *req;
+	Response *resp;
 	std::vector<ServerConfig> serverBlock;
 
 public:
-	Request *getRequest();
+	Request *getRequest() const;
+	Response *getResponse() const;
 	Client(int socket, std::vector<ServerConfig> &paramBlocks);
 	~Client();
 	void buildResponse();
