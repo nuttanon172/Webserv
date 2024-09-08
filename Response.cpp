@@ -3,7 +3,7 @@
 Response::Response()
 {
 	_status = initStatus();
-	_first_line = "";
+	_status_line = "";
 	_header = "";
 	_body = "";
 	_message = "";
@@ -11,28 +11,27 @@ Response::Response()
 
 Response::~Response()
 {
-	_first_line = "";
+	_status_line = "";
 	_header = "";
 	_body = "";
 	_message = "";
 }
 
-void Response::buildHttpMessages(int code)
+void Response::buildHttpMessages()
 {
-	buildStatusLine(code);
-	buildHeaders();
+	_message = _status_line + _header + _body;
 }
 
 void Response::buildStatusLine(int code)
 {
-	_first_line = "HTTP/1.1 " + ft_itos(code) + " " + _status[code];
+	_status_line = "HTTP/1.1 " + ft_itos(code) + " " + _status[code];
 }
 
 void Response::buildHeaders()
 {
 	std::stringstream ss;
 
-	//ss << "Host: localhost:8002" << "\r\n";
+	ss << "\r\nHost: localhost:8002" << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	ss << "Keep-Alive: timeout=6, max=2\r\n";
 	ss << "Content-Type: text/html" << "\r\n\r\n";
@@ -52,7 +51,7 @@ void Response::buildErrorBody(int code)
 	ss << "<body>\n";
 	ss << "<h1>" << code << "</h1>\n";
 	ss << "<h1>Error " << code << "</h1>\n";
-	ss << _status[code] << '\n';
+	ss << "<p>" << _status[code] << ".</p>"<< '\n';
 	ss << "</body>\n";
 	ss << "</html>\r\n";
 	_body = ss.str().c_str();
@@ -63,16 +62,44 @@ void Response::buildHttpStatus(int code, int socket)
 	buildStatusLine(code);
 	buildHeaders();
 	buildErrorBody(code);
-	std::string _message = _first_line + _header + _body;
+	buildHttpMessages();
+	send(socket, _message.c_str(), _message.size(), 0);
+}
+
+void Response::readFile(std::string &path, int socket)
+{
+	std::ifstream inputFile(path.c_str());
+	std::string line;
+	std::stringstream ss;
+
+	if (access(path.c_str(), R_OK) != 0)
+	{
+		std::cerr << "readFile: Read file error\n";
+		buildHttpStatus(403, socket);
+	}
+	while (std::getline(inputFile, line))
+	{
+		ss << line << "<br>";
+		ss << '\n';
+	}
+	_body = ss.str();
+}
+
+void Response::serveFile(std::string &path, int socket)
+{
+	buildStatusLine(200);
+	buildHeaders();
+	readFile(path, socket);
+	buildHttpMessages();
+	std::cout << _status_line;
+	std::cout << _header;
+	std::cout << _body;
 	send(socket, _message.c_str(), _message.size(), 0);
 }
 
 void Response::buildBody()
 {
-}
 
-void Response::buildIndex()
-{
 }
 
 //bool isDirectory(const std::string &path) {}

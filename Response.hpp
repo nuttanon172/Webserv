@@ -7,7 +7,7 @@ class Response
 {
 private:
 	std::map<int, std::string> _status;
-	std::string _first_line;
+	std::string _status_line;
 	std::string _header;
 	std::string _body;
 	std::string _message;
@@ -22,7 +22,9 @@ public:
 	void buildIndex();
 	void buildErrorBody(int code);
 	void buildHttpStatus(int code, int socket);
-	void buildHttpMessages(int code);
+	void buildHttpMessages();
+	void serveFile(std::string &path, int socket);
+	void readFile(std::string &path, int socket);
 	bool isDirectory(const std::string &path);
 };
 

@@ -23,9 +23,10 @@
 #include <map>
 #include <vector>
 #include <sstream>
+#include <fstream>
+#include <sys/stat.h>
 #include <arpa/inet.h>
 #include "Server.hpp"
-#include "HTTPStatus.hpp"
 #include "Response.hpp"
 #include "Request.hpp"
 #include "Client.hpp"

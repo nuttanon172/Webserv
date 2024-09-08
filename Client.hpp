@@ -19,6 +19,7 @@ private:
 public:
 	Request *getRequest() const;
 	Response *getResponse() const;
+	
 	Client(int socket, std::vector<ServerConfig> &paramBlocks);
 	~Client();
 	void buildResponse();
