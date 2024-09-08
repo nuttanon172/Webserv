@@ -17,6 +17,8 @@ private:
 public:
 	Request();
 	~Request();
+	std::string &getPath();
+	std::string &getMethod();
 	void writeStream(char *str, int size);
 	bool parseRequestLine();
 	bool parseHttpHeaders();

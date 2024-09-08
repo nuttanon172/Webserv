@@ -121,8 +121,9 @@ void Server::checkClient()
 					std::cout << resp;
 					send(socket, resp.c_str(), resp.size(), 0);*/
 					//client_map[socket]->getResponse()->buildHttpStatus(404, socket);
-					std::string filename = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
-					client_map[socket]->getResponse()->serveFile(filename, socket);
+					client_map[socket]->buildResponse();
+					//std::string filename = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
+					//client_map[socket]->getResponse()->serveFile(filename, socket);
 					if (FD_ISSET(socket, &current_sockets))
 					{
 						FD_CLR(socket, &current_sockets);

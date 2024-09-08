@@ -39,12 +39,10 @@ bool Request::parseHttpHeaders()
 	while (buffer.length() && buffer != "\r\n") // '\r\n' end line
 	{
 		colon = buffer.find_first_of(':');
-		if (colon == std::string::npos)
-			return (false);
 		key = buffer.substr(0, colon);
 		value = buffer.substr(colon + 2, buffer.size() - (colon + 2) - 1); // -1 trim \r
-		if (!key.length() || !value.length())
-			return (false);
+		//if (!key.length() || !value.length())
+		//	return (false);
 		header_map[key] = value;
 		std::getline(inputStream, buffer);
 	}
@@ -79,4 +77,14 @@ bool Request::isMultipart()
 		boundaryEnd = "--" + boundaryEnd + "--";
 	}
 	return (true);
+}
+
+std::string &Request::getPath()
+{
+	return path;
+}
+
+std::string &Request::getMethod()
+{
+	return method;
 }

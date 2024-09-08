@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response()
+Response::Response(std::vector<ServerConfig> &serverBlock) : serverBlock(serverBlock)
 {
 	_status = initStatus();
 	_status_line = "";
@@ -31,11 +31,13 @@ void Response::buildHeaders()
 {
 	std::stringstream ss;
 
-	ss << "\r\nHost: localhost:8002" << "\r\n";
+	ss << "\r\nDate: " + getCurrentTime() + "\r\n";
+	ss << "Server: localhost" << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	ss << "Keep-Alive: timeout=6, max=2\r\n";
-	ss << "Content-Type: text/html" << "\r\n\r\n";
-	//ss << "Content-Length: " << "\r\n\r\n";
+	ss << "Content-Type: text/html" << "\r\n";
+	ss << "Content-Length: " << "\r\n\r\n";
+	
 	_header = ss.str().c_str();
 }
 
@@ -89,8 +91,10 @@ void Response::serveFile(std::string &path, int socket)
 {
 	buildStatusLine(200);
 	buildHeaders();
+	path = "/home/ntairatt/WebServ/docs/fusion_web" + path;
 	readFile(path, socket);
 	buildHttpMessages();
+	std::cout << "path: " << path << '\n';
 	std::cout << _status_line;
 	std::cout << _header;
 	std::cout << _body;

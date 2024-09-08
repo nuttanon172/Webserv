@@ -51,6 +51,15 @@ void printConfig(const std::vector<ServerConfig>& servers) {
     }
 }
 
+// Function to generate the current date and time in HTTP format
+std::string getCurrentTime() {
+    std::time_t now = std::time(0);
+    std::tm* gmtm = std::gmtime(&now);
+    char buf[100];
+    std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", gmtm);
+    return std::string(buf);
+}
+
 std::map<int, std::string> initStatus()
 {
 	std::map<int, std::string> status;

@@ -26,6 +26,7 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <arpa/inet.h>
+#include <ctime>
 #include "Server.hpp"
 #include "Response.hpp"
 #include "Request.hpp"

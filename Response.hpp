@@ -3,6 +3,9 @@
 
 #include "WebServer.hpp"
 
+struct Location;
+struct ServerConfig;
+
 class Response
 {
 private:
@@ -11,8 +14,9 @@ private:
 	std::string _header;
 	std::string _body;
 	std::string _message;
+	std::vector<ServerConfig> serverBlock;
 public:
-	Response();
+	Response(std::vector<ServerConfig> &serverBlock);
 	Response(const Response &obj);
 	Response &operator=(const Response &obj);
 	~Response();
