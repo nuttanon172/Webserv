@@ -2,13 +2,21 @@ NAME      = webserv
 
 CXX       = c++
 
-CXXFLAGS  = -Wall -Wextra -Werror -std=c++98
+#CXXFLAGS  = -Wall -Wextra -Werror -std=c++98
+#CXXFLAGS  = -std=c++98 -g -fsanitize=address
+CXXFLAGS  = -std=c++98 -g
 
 OBJ_DIR   = obj
 
-HEADERS   = iter.hpp
+#HEADERS   = iter.hpp
 
-SRCS      = main.cpp
+SRCS      = main.cpp \
+			config.cpp \
+			util.cpp \
+			Server.cpp \
+			Request.cpp \
+			Response.cpp \
+			Client.cpp
 
 OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
