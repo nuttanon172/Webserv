@@ -1,12 +1,13 @@
 #include "Client.hpp"
 
-Client::Client(int socket, std::vector<ServerConfig> &paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), resp(new Response(paramBlocks)), serverBlock(paramBlocks)
+Client::Client(int socket, std::vector<ServerConfig> &paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), resp(new Response(paramBlocks[0])), serverBlock(paramBlocks)
 {
 }
 
 Client::~Client()
 {
 	delete req;
+	delete resp;
 }
 
 void Client::buildResponse()
@@ -19,7 +20,6 @@ void Client::buildResponse()
 		return ;
 	if (req->isMultipart() == true)
 		req->parseBody();
-	std::cout << "te\n";
 	this->getResponse()->serveFile(getRequest()->getPath(), socket);
 }
 

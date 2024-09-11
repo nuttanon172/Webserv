@@ -1,44 +1,44 @@
 #include "Response.hpp"
 
-Response::Response(std::vector<ServerConfig> &serverBlock) : serverBlock(serverBlock)
+Response::Response(ServerConfig &serverBlock) : serverBlock(serverBlock)
 {
-	_status = initStatus();
-	_status_line = "";
-	_header = "";
-	_body = "";
-	_message = "";
+	status = initStatus();
+	status_line = "";
+	header = "";
+	body = "";
+	message = "";
 }
 
 Response::~Response()
 {
-	_status_line = "";
-	_header = "";
-	_body = "";
-	_message = "";
+	status_line = "";
+	header = "";
+	body = "";
+	message = "";
 }
 
 void Response::buildHttpMessages()
 {
-	_message = _status_line + _header + _body;
+	message = status_line + header + body;
 }
 
 void Response::buildStatusLine(int code)
 {
-	_status_line = "HTTP/1.1 " + ft_itos(code) + " " + _status[code];
+	status_line = "HTTP/1.1 " + ft_itos(code) + " " + status[code] + "\r\n";
 }
 
 void Response::buildHeaders()
 {
 	std::stringstream ss;
 
-	ss << "\r\nDate: " + getCurrentTime() + "\r\n";
+	ss << "Date: " + getCurrentTime() + "\r\n";
 	ss << "Server: localhost" << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
-	ss << "Keep-Alive: timeout=6, max=2\r\n";
-	ss << "Content-Type: text/html" << "\r\n";
-	ss << "Content-Length: " << "\r\n\r\n";
-	
-	_header = ss.str().c_str();
+	// ss << "Keep-Alive: timeout=6, max=2\r\n"; no directive require
+	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
+	ss << "Content-Length: " << body.size() << "\r\n";
+	ss << "\r\n";
+	header = ss.str().c_str();
 }
 
 void Response::buildErrorBody(int code)
@@ -48,24 +48,24 @@ void Response::buildErrorBody(int code)
 	ss << "<!DOCTYPE html>\n";
 	ss << "<html lang=\"en\">\n";
 	ss << "<head>\n";
-	ss << "<title>" << code << "-" << _status[code] << "</title>\n";
+	ss << "<title>" << code << "-" << status[code] << "</title>\n";
 	ss << "</head>\n";
 	ss << "<body>\n";
 	ss << "<h1>" << code << "</h1>\n";
 	ss << "<h1>Error " << code << "</h1>\n";
-	ss << "<p>" << _status[code] << ".</p>"<< '\n';
+	ss << "<p>" << status[code] << ".</p>"<< '\n';
 	ss << "</body>\n";
 	ss << "</html>\r\n";
-	_body = ss.str().c_str();
+	body = ss.str().c_str();
 }
 
 void Response::buildHttpStatus(int code, int socket)
 {
 	buildStatusLine(code);
-	buildHeaders();
 	buildErrorBody(code);
+	buildHeaders();
 	buildHttpMessages();
-	send(socket, _message.c_str(), _message.size(), 0);
+	send(socket, message.c_str(), message.size(), 0);
 }
 
 void Response::readFile(std::string &path, int socket)
@@ -84,21 +84,21 @@ void Response::readFile(std::string &path, int socket)
 		ss << line << "<br>";
 		ss << '\n';
 	}
-	_body = ss.str();
+	body = ss.str();
 }
 
 void Response::serveFile(std::string &path, int socket)
 {
 	buildStatusLine(200);
-	buildHeaders();
-	path = "/home/ntairatt/WebServ/docs/fusion_web" + path;
+	path = "/home/ntairatt/webserv/docs/fusion_web/index.html";
 	readFile(path, socket);
+	buildHeaders();
 	buildHttpMessages();
-	std::cout << "path: " << path << '\n';
-	std::cout << _status_line;
-	std::cout << _header;
-	std::cout << _body;
-	send(socket, _message.c_str(), _message.size(), 0);
+	/*std::cout << "path: " << path << '\n';
+	std::cout << status_line;
+	std::cout << header;
+	std::cout << body;*/
+	send(socket, message.c_str(), message.size(), 0);
 }
 
 void Response::buildBody()

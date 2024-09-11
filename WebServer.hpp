@@ -31,7 +31,6 @@
 #include "Response.hpp"
 #include "Request.hpp"
 #include "Client.hpp"
-#include "config.hpp"
 #include "util.hpp"
 
 std::string ft_itos(int nbr);

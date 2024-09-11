@@ -2,21 +2,19 @@
 #define RESPONSE_HPP
 
 #include "WebServer.hpp"
-
-struct Location;
-struct ServerConfig;
+#include "config.hpp"
 
 class Response
 {
 private:
-	std::map<int, std::string> _status;
-	std::string _status_line;
-	std::string _header;
-	std::string _body;
-	std::string _message;
-	std::vector<ServerConfig> serverBlock;
+	std::map<int, std::string> status;
+	std::string status_line;
+	std::string header;
+	std::string body;
+	std::string message;
+	struct ServerConfig serverBlock;
 public:
-	Response(std::vector<ServerConfig> &serverBlock);
+	Response(struct ServerConfig &serverBlock);
 	Response(const Response &obj);
 	Response &operator=(const Response &obj);
 	~Response();

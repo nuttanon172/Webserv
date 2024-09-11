@@ -19,18 +19,20 @@ private:
 	fd_set ready_sockets;
 	fd_set listen_sockets;
 	bool checkRequest(int socket);
+	std::map<int, ServerConfig *> config_map;
 	std::map<int, Client *> client_map;
 	//Request server_req;
 public:
 	//Server();
-	Server(const std::vector<ServerConfig> &obj);
+	//Server(const std::vector<ServerConfig> &obj);
+	Server(const std::string &pathConfig);
 	//Server(std::vector<ServerBlock> &serveBlock);
 	~Server();
 	//Server &operator=(const Server &obj);
 	void initServer();
 	void startServer();
 	void initSocket();
-	void identifySocket(int port, std::string &host);
+	void identifySocket(int port, ServerConfig &serverBlock);
 	void checkClient();
 	void acceptNewConnection(int listen_sockets);
 	void closeSocket();
