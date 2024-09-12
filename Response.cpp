@@ -90,7 +90,7 @@ void Response::readFile(std::string &path, int socket)
 void Response::serveFile(std::string &path, int socket)
 {
 	buildStatusLine(200);
-	path = "/home/ntairatt/webserv/docs/fusion_web/index.html";
+	path = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
 	readFile(path, socket);
 	buildHeaders();
 	buildHttpMessages();

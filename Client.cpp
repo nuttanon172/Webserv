@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int socket, std::vector<ServerConfig> &paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), resp(new Response(paramBlocks[0])), serverBlock(paramBlocks)
+Client::Client(int socket, ServerConfig *paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), resp(new Response(paramBlocks[0])), serverBlock(paramBlocks)
 {
 }
 

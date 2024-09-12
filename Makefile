@@ -3,8 +3,8 @@ NAME      = webserv
 CXX       = c++
 
 #CXXFLAGS  = -Wall -Wextra -Werror -std=c++98
-#CXXFLAGS  = -std=c++98 -g -fsanitize=address
-CXXFLAGS  = -std=c++98 -g
+CXXFLAGS  = -std=c++98 -g -fsanitize=address
+#CXXFLAGS  = -std=c++98 -g
 
 OBJ_DIR   = obj
 

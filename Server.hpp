@@ -19,7 +19,7 @@ private:
 	fd_set ready_sockets;
 	fd_set listen_sockets;
 	bool checkRequest(int socket);
-	std::map<int, ServerConfig *> config_map;
+	std::map<int, ServerConfig> server_config;
 	std::map<int, Client *> client_map;
 	//Request server_req;
 public:
@@ -35,7 +35,7 @@ public:
 	void identifySocket(int port, ServerConfig &serverBlock);
 	void checkClient();
 	void acceptNewConnection(int listen_sockets);
-	void closeSocket();
+	void closeSocket(int socket);
 	void shutdownServer();
 };
 
