@@ -20,6 +20,7 @@ void Client::buildResponse()
 		return ;
 	if (req->isMultipart() == true)
 		req->parseBody();
+	this->updateTime();
 	this->getResponse()->serveFile(getRequest()->getPath(), socket);
 }
 
