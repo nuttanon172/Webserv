@@ -326,6 +326,83 @@ bool parseConfigFile(const std::string& filename, std::vector<ServerConfig> &ser
 //     config_file.close();
 //     return true;
 // }
+void printServerConfig(const ServerConfig& server) {
+    std::cout << "Server Configuration:" << std::endl;
+
+    std::cout << "Listen Ports: ";
+    for (std::vector<int>::const_iterator it = server.listen_ports.begin(); it != server.listen_ports.end(); ++it) {
+        std::cout << *it;
+        if (it + 1 != server.listen_ports.end()) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << std::endl;
+
+    std::cout << "Server Name: " << server.server_name << std::endl;
+    std::cout << "Host: " << server.host << std::endl;
+    std::cout << "Root: " << server.root << std::endl;
+    std::cout << "Client Max Body Size: " << server.client_max_body_size << std::endl;
+
+    std::cout << "Index: ";
+    for (std::vector<std::string>::const_iterator it = server.index.begin(); it != server.index.end(); ++it) {
+        std::cout << *it;
+        if (it + 1 != server.index.end()) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << std::endl;
+
+    std::cout << "Error Pages:" << std::endl;
+    for (std::map<int, std::string>::const_iterator it = server.error_pages.begin(); it != server.error_pages.end(); ++it) {
+        std::cout << "  Code " << it->first << ": " << it->second << std::endl;
+    }
+
+    std::cout << "Locations:" << std::endl;
+    for (std::vector<Location>::const_iterator loc_it = server.locations.begin(); loc_it != server.locations.end(); ++loc_it) {
+        const Location& loc = *loc_it;
+        std::cout << "  Path: " << loc.path << std::endl;
+        std::cout << "    Allow Methods: ";
+        for (std::map<std::string, bool>::const_iterator method_it = loc.allow_methods.begin(); method_it != loc.allow_methods.end(); ++method_it) {
+            if (method_it->second) {
+                std::cout << method_it->first << " ";
+            }
+        }
+        std::cout << std::endl;
+
+        std::cout << "    Autoindex: " << (loc.autoindex ? "on" : "off") << std::endl;
+
+        std::cout << "    Index: ";
+        for (std::vector<std::string>::const_iterator it = loc.index.begin(); it != loc.index.end(); ++it) {
+            std::cout << *it;
+            if (it + 1 != loc.index.end()) {
+                std::cout << ", ";
+            }
+        }
+        std::cout << std::endl;
+
+        std::cout << "    Return Path: " << loc.return_path << std::endl;
+        std::cout << "    Root: " << loc.root << std::endl;
+        std::cout << "    Client Max Body Size: " << loc.client_max_body_size << std::endl;
+
+        std::cout << "    CGI Path: ";
+        for (std::vector<std::string>::const_iterator it = loc.cgi_path.begin(); it != loc.cgi_path.end(); ++it) {
+            std::cout << *it;
+            if (it + 1 != loc.cgi_path.end()) {
+                std::cout << ", ";
+            }
+        }
+        std::cout << std::endl;
+
+        std::cout << "    CGI Ext: ";
+        for (std::vector<std::string>::const_iterator it = loc.cgi_ext.begin(); it != loc.cgi_ext.end(); ++it) {
+            std::cout << *it;
+            if (it + 1 != loc.cgi_ext.end()) {
+                std::cout << ", ";
+            }
+        }
+        std::cout << std::endl;
+    }
+}
 
 // Function to check if a directory exists (POSIX compliant)
 bool directoryExists(const std::string& path) {
