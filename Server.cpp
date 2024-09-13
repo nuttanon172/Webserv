@@ -12,7 +12,7 @@ Server::Server(const std::string &pathConfig)
 		std::cout << "Failed to parse config file" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	printConfig(serverBlock);
+	// printConfig(serverBlock);
 	initServer();
 }
 
@@ -114,11 +114,11 @@ void Server::checkClient()
 	int status;
 	int new_max;
 
+	std::cout << "Webserver is running...\n";
 	while (1)
 	{
 		memcpy(&ready_sockets, &current_sockets, sizeof(current_sockets)); /* because select is destructive */
 		status = select(max_socket + 1, &ready_sockets, NULL, NULL, NULL);
-		std::cout << "waiting...\n";
 		if (status < 0)
 		{
 			perror("Select Error");
@@ -126,35 +126,33 @@ void Server::checkClient()
 		}
 		for (int socket = 0; socket <= max_socket; socket++)
 		{
-			std::cout << "Socket: " << socket << '\n';
-			std::cout << "Max_Socket: " << max_socket << '\n'
-					  << '\n';
 			if (FD_ISSET(socket, &ready_sockets))
 			{
-				std::cout << "Select socket: " << socket << '\n';
+				// std::cout << "Select socket: " << socket << '\n';
 				if (FD_ISSET(socket, &listen_sockets))
 					this->acceptNewConnection(socket);
 				else
 				{
-					/* Check time each socket */
-					std::map<int, Client *>::iterator it = client_map.begin();
-					for (; it != client_map.end(); it++)
-					{
-						if (time(NULL) - it->second->getLastTime() > 5)
-							closeSocket(it->first);
-					}
-					std::cout << "Sending to socket: " << socket << "\n";
-					checkRequest(socket);
+					// std::cout << "Sending to socket: " << socket << "\n";
+					if (!client_map[socket])
+						client_map[new_socket] = new Client(new_socket, &server_config[new_socket]);
+					readRequest(socket);
 					client_map[socket]->buildResponse();
 					closeSocket(socket);
 					status--;
-					//client_map[socket]->updateTime();
+					std::cout << "Socket: " << socket << '\n';
+					std::cout << "MaxSocket: " << max_socket << '\n';
+					// client_map[socket]->updateTime();
 					/* Display socket value */
-					std::cout << "status: " << status << ", message sent\n";
-					std::cout << "Max_Socket: " << max_socket << '\n'
-							  << '\n';
 					std::cout << YELLOW << "Webserver waiting for client....\n"
 							  << DEFAULT;
+				}
+				/* Check time each socket */
+				std::map<int, Client *>::iterator it = client_map.begin();
+				for (; it != client_map.end(); it++)
+				{
+					if (time(NULL) - it->second->getLastTime() > 5)
+						closeSocket(it->first);
 				}
 			}
 		}
@@ -184,20 +182,18 @@ void Server::acceptNewConnection(int listen_sockets)
 		max_socket = new_socket;
 	std::cout << GREEN << "accept socket[" << new_socket << "]\n"
 			  << DEFAULT;
-	std::cout << "new_socket = " << new_socket << '\n';
-	std::cout << "max_socket = " << max_socket << '\n';
 	std::cout << "Recieve Request...\n";
 }
 
-bool Server::checkRequest(int socket)
+bool Server::readRequest(int socket)
 {
 	char buffer[10000];
 	int size;
 
+	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
 		size = recv(socket, buffer, sizeof(buffer), 0);
-		std::cout << "size: " << size << '\n';
 		if (size < 0)
 			break;
 		else if (!size)
@@ -207,6 +203,7 @@ bool Server::checkRequest(int socket)
 		std::cout << buffer << '\n';
 		client_map[new_socket]->getRequest()->writeStream(buffer, size);
 	}
+	std::cout << "-----------------------------------------------------\n";
 	return (true);
 }
 
@@ -216,22 +213,23 @@ void Server::closeSocket(int socket)
 	if (FD_ISSET(socket, &current_sockets))
 	{
 		FD_CLR(socket, &current_sockets);
+		FD_CLR(socket, &ready_sockets);
 		if (socket == max_socket)
 		{
 			for (int i = 0; i < max_socket; i++)
 			{
-				if (FD_ISSET(i, &current_sockets))
+				if (FD_ISSET(i, &current_sockets) || FD_ISSET(i, &ready_sockets))
 					max = i;
 			}
 			max_socket = max;
 		}
 		close(socket);
 		delete client_map[socket];
+		client_map[socket] = NULL;
 		client_map.erase(socket);
 	}
 }
 
 void Server::shutdownServer()
 {
-
 }

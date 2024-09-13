@@ -21,7 +21,8 @@ void Client::buildResponse()
 	if (req->isMultipart() == true)
 		req->parseBody();
 	this->updateTime();
-	this->getResponse()->serveFile(getRequest()->getPath(), socket);
+	if (this->getResponse()->searchFile(this->getRequest(), socket) == false)
+		this->getResponse()->serveFile(getRequest()->getPath(), socket);
 }
 
 Request *Client::getRequest() const

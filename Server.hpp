@@ -18,7 +18,7 @@ private:
 	fd_set current_sockets;
 	fd_set ready_sockets;
 	fd_set listen_sockets;
-	bool checkRequest(int socket);
+	bool readRequest(int socket);
 	std::map<int, ServerConfig> server_config;
 	std::map<int, Client *> client_map;
 	//Request server_req;

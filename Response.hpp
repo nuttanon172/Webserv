@@ -4,6 +4,8 @@
 #include "WebServer.hpp"
 #include "config.hpp"
 
+class Request;
+
 class Response
 {
 private:
@@ -18,6 +20,7 @@ public:
 	Response(const Response &obj);
 	Response &operator=(const Response &obj);
 	~Response();
+	bool searchFile(Request *req, int socket);
 	void buildStatusLine(int code);
 	void buildHeaders();
 	void buildBody();
@@ -27,6 +30,7 @@ public:
 	void buildHttpMessages();
 	void serveFile(std::string &path, int socket);
 	void readFile(std::string &path, int socket);
+	void sendFavicon(int socket);
 	bool isDirectory(const std::string &path);
 };
 
