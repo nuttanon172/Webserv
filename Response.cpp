@@ -87,10 +87,42 @@ void Response::readFile(std::string &path, int socket)
 	body = ss.str();
 }
 
+bool Response::searchFile(Request *req, int socket)
+{
+	if (req->getPath() == "/favicon.ico")
+		sendFavicon(socket);
+	else
+		return false;
+	return true;
+}
+
+void Response::sendFavicon(int socket)
+{
+	std::cout << "sending favicon\n";
+	buildStatusLine(200);
+	std::string path = "/home/ntairatt/WebServ/docs/favicon.ico";
+	readFile(path, socket);
+	std::stringstream ss;
+	ss << "Date: " + getCurrentTime() + "\r\n";
+	ss << "Server: localhost" << "\r\n";
+	ss << "Connection: Keep-Alive\r\n";
+	ss << "Content-Type: image/x-icon\r\n";
+	ss << "Content-Length: " << body.size() << "\r\n";
+	ss << "\r\n";
+	header = ss.str();
+	//buildHeaders();
+	buildHttpMessages();
+	/*std::cout << "path: " << path << '\n';
+	std::cout << status_line;
+	std::cout << header;
+	std::cout << body;*/
+	send(socket, message.c_str(), message.size(), 0);
+}
+
 void Response::serveFile(std::string &path, int socket)
 {
 	buildStatusLine(200);
-	path = "/home/ntairatt/webserv/docs/fusion_web/index.html";
+	path = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
 	readFile(path, socket);
 	buildHeaders();
 	buildHttpMessages();

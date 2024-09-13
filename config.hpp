@@ -32,5 +32,7 @@ struct ServerConfig {
 bool parseConfigFile(const std::string& filename, std::vector<ServerConfig> &servers);
 bool validateConfig(const ServerConfig& server);
 int stringToInt(const std::string& str);
+void printServerConfig(const ServerConfig& server);
+
 
 #endif // CONFIG_HPP

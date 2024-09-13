@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int socket, std::vector<ServerConfig> &paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), resp(new Response(paramBlocks[0])), serverBlock(paramBlocks)
+Client::Client(int socket, ServerConfig *paramBlocks) : last_time(time(NULL)), socket(socket), req(new Request()), resp(new Response(paramBlocks[0])), serverBlock(paramBlocks)
 {
 }
 
@@ -20,7 +20,9 @@ void Client::buildResponse()
 		return ;
 	if (req->isMultipart() == true)
 		req->parseBody();
-	this->getResponse()->serveFile(getRequest()->getPath(), socket);
+	this->updateTime();
+	if (this->getResponse()->searchFile(this->getRequest(), socket) == false)
+		this->getResponse()->serveFile(getRequest()->getPath(), socket);
 }
 
 Request *Client::getRequest() const
