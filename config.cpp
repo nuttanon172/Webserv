@@ -357,7 +357,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                         return false;
                     }
 
-                    current_location.return_page[status_code] = url;
+                    current_location.return_path[status_code] = url;
                 }
         }
     }
@@ -708,7 +708,12 @@ void printServerConfig(const ServerConfig &server)
         }
         std::cout << std::endl;
 
-        std::cout << "    Return Path: " << loc.return_path << std::endl;
+        std::cout << "Return Path:" << std::endl;
+        for (std::map<int, std::string>::const_iterator it = loc.return_path.begin(); it != loc.return_path.end(); ++it)
+        {
+        std::cout << "  Code " << it->first << ": " << it->second << std::endl;
+        }
+
         std::cout << "    Root: " << loc.root << std::endl;
         std::cout << "    Client Max Body Size: " << loc.client_max_body_size << std::endl;
 
