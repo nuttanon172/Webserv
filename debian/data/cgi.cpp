@@ -127,7 +127,7 @@ int write_in_chunks(int fd, const std::string& data) {
 }
 
 // template<typename T>
-int cgi() {
+std::string cgi() {
 
 	CGI cgi("/usr/bin/php-cgi", "/data/index.php");
 	if (pipe(cgi.pipeid) == -1 || pipe(cgi.pipefd) == -1) {
@@ -175,6 +175,7 @@ int cgi() {
 		waitpid(pid, &status, 0);
 		std::cout << std::endl;
 		std::string response_body = stream.str();
+		return response_body;
 		// std::string http_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + response_body;
 		// send(CLIENT.socket, http_response.c_str(), http_response.size(), 0);
 	}
