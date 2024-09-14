@@ -187,7 +187,7 @@ document.querySelectorAll('form[id^="deleteForm-"]').forEach(form => {
 
         const formData = new FormData(form);
         fetch(form.action, {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
