@@ -1,6 +1,6 @@
 #include "Request.hpp"
 
-Request::Request()
+Request::Request(ServerConfig *serverBlock) : serverBlock(serverBlock)
 {
 
 }
@@ -20,11 +20,27 @@ void Request::writeStream(char *str, int size)
 bool Request::parseRequestLine()
 {
 	std::string buffer = "";
+	std::size_t pos;
+	std::string fileName;
 	std::getline(inputStream, buffer);
 	std::stringstream stream(buffer);
 
 	stream >> method;
 	stream >> path;
+	fileName = path;
+	if (serverBlock->root[serverBlock->root.size() - 1] != '/' && path.size() != 1)
+		path = serverBlock->root + fileName;
+	else if (serverBlock->root[serverBlock->root.size() - 1] == '/' && path.size() > 1)
+	{
+		pos = path.find_first_not_of('/');
+		fileName = path.substr(pos);
+		path = serverBlock->root + fileName;
+		//std::cout << "pos: " << pos << '\n';
+	}
+	else
+		path = serverBlock->root;
+	//std::cout << "Root: " << serverBlock->root << '\n';
+	std::cout << "Path: " << path << '\n';
 	return (true);
 }
 

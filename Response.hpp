@@ -14,9 +14,9 @@ private:
 	std::string header;
 	std::string body;
 	std::string message;
-	struct ServerConfig serverBlock;
+	ServerConfig *serverBlock;
 public:
-	Response(struct ServerConfig &serverBlock);
+	Response(ServerConfig *serverBlock);
 	Response(const Response &obj);
 	Response &operator=(const Response &obj);
 	~Response();
@@ -31,7 +31,6 @@ public:
 	void serveFile(std::string &path, int socket);
 	void readFile(std::string &path, int socket);
 	void sendFavicon(int socket);
-	bool isDirectory(const std::string &path);
 };
 
 #endif

@@ -2,6 +2,7 @@
 #define REQUEST_HPP
 
 #include "WebServer.hpp"
+#include "config.hpp"
 
 class Request
 {
@@ -12,10 +13,11 @@ private:
 	std::string path;
 	std::string boundaryStart;
 	std::string boundaryEnd;
+	ServerConfig *serverBlock;
 	std::map<std::string, std::string> header_map;
 
 public:
-	Request();
+	Request(ServerConfig *serverBlock);
 	~Request();
 	std::string &getPath();
 	std::string &getMethod();

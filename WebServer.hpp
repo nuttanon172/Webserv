@@ -1,5 +1,5 @@
-#ifndef WEBSERV_HPP
-#define WEBSERV_HPP
+#ifndef WEBSERVER_HPP
+#define WEBSERVER_HPP
 
 #define TIME_OUT 6
 
@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <string>
 #include <sstream>
 #include <map>
 #include <vector>

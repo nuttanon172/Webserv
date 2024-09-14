@@ -12,7 +12,7 @@ Server::Server(const std::string &pathConfig)
 		std::cout << "Failed to parse config file" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	// printConfig(serverBlock);
+	printConfig(serverBlock);
 	initServer();
 }
 
@@ -135,7 +135,7 @@ void Server::checkClient()
 				{
 					// std::cout << "Sending to socket: " << socket << "\n";
 					if (!client_map[socket])
-						client_map[new_socket] = new Client(new_socket, &server_config[new_socket]);
+						client_map[socket] = new Client(socket, &server_config[3]);
 					readRequest(socket);
 					client_map[socket]->buildResponse();
 					closeSocket(socket);
@@ -176,10 +176,11 @@ void Server::acceptNewConnection(int listen_sockets)
 		close(new_socket);
 		exit(EXIT_FAILURE);
 	}
-	client_map[new_socket] = new Client(new_socket, &server_config[new_socket]);
+	client_map[new_socket] = new Client(new_socket, &server_config[listen_sockets]);
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
+	//printServerConfig(server_config[listen_sockets]);
 	std::cout << GREEN << "accept socket[" << new_socket << "]\n"
 			  << DEFAULT;
 	std::cout << "Recieve Request...\n";

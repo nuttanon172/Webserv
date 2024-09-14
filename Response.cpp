@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response(ServerConfig &serverBlock) : serverBlock(serverBlock)
+Response::Response(ServerConfig *serverBlock) : serverBlock(serverBlock)
 {
 	status = initStatus();
 	status_line = "";
@@ -32,7 +32,8 @@ void Response::buildHeaders()
 	std::stringstream ss;
 
 	ss << "Date: " + getCurrentTime() + "\r\n";
-	ss << "Server: localhost" << "\r\n";
+	if (serverBlock->server_name.empty() != true)
+		ss << "Server: " << serverBlock->server_name  << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	// ss << "Keep-Alive: timeout=6, max=2\r\n"; no directive require
 	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
@@ -71,28 +72,43 @@ void Response::buildHttpStatus(int code, int socket)
 void Response::readFile(std::string &path, int socket)
 {
 	std::ifstream inputFile(path.c_str());
+	std::vector<std::string>::iterator it = serverBlock->index.begin();
+	std::string indexPath;
+	std::string tmp_path;
 	std::string line;
 	std::stringstream ss;
-
-	if (access(path.c_str(), R_OK) != 0)
+ 	//check if it directory search for index inside else search for index
+	if (isDirectory(path) == true || access(path.c_str(), R_OK) != 0)
 	{
-		std::cerr << "readFile: Read file error\n";
-		buildHttpStatus(403, socket);
+		if (path[path.size() - 1] != '/')
+			tmp_path = path + "/";
+		else 
+			tmp_path = path;
+		std::cout << "tmp_path: " << tmp_path << '\n';
+		for (;it != serverBlock->index.end();it++)
+		{
+			indexPath = tmp_path + *it;
+			std::cout << "FileName: " << *it << '\n';
+			std::cout << "FilePath: " << indexPath << '\n';
+			if (access(indexPath.c_str(), R_OK) == 0)
+			{
+				path = indexPath;
+				this->readFile(path, socket);
+				return ;
+			}
+		}
+		tmp_path = tmp_path + serverBlock->error_pages[404];
+		std::cout << "tmp_path: " << tmp_path << '\n';
+		if (access(tmp_path.c_str(), R_OK) != 0)
+			this->buildHttpStatus(404, socket);
 	}
 	while (std::getline(inputFile, line))
-	{
-		ss << line << "<br>";
-		ss << '\n';
-	}
+		ss << line << "\r\n";
 	body = ss.str();
 }
 
 bool Response::searchFile(Request *req, int socket)
 {
-	if (req->getPath() == "/favicon.ico")
-		sendFavicon(socket);
-	else
-		return false;
 	return true;
 }
 
@@ -104,7 +120,7 @@ void Response::sendFavicon(int socket)
 	readFile(path, socket);
 	std::stringstream ss;
 	ss << "Date: " + getCurrentTime() + "\r\n";
-	ss << "Server: localhost" << "\r\n";
+	ss << "Server: " << serverBlock->server_name << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	ss << "Content-Type: image/x-icon\r\n";
 	ss << "Content-Length: " << body.size() << "\r\n";
@@ -122,10 +138,11 @@ void Response::sendFavicon(int socket)
 void Response::serveFile(std::string &path, int socket)
 {
 	buildStatusLine(200);
-	path = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
+	//path = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
 	readFile(path, socket);
 	buildHeaders();
 	buildHttpMessages();
+	std::cout << "serveFile called\n";
 	/*std::cout << "path: " << path << '\n';
 	std::cout << status_line;
 	std::cout << header;
@@ -137,5 +154,3 @@ void Response::buildBody()
 {
 
 }
-
-//bool isDirectory(const std::string &path) {}
