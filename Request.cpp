@@ -109,3 +109,8 @@ std::map<std::string, std::string> &Request::getHeaderMap()
 {
 	return header_map;
 }
+
+std::stringstream &Request::getBody()
+{
+	return body;
+}
