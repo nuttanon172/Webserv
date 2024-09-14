@@ -99,7 +99,7 @@ void Response::readFile(std::string &path, int socket)
 		}
 		tmp_path = tmp_path + serverBlock->error_pages[404];
 		std::cout << "tmp_path: " << tmp_path << '\n';
-		if (access(tmp_path.c_str(), R_OK) != 0)
+		if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
 			this->buildHttpStatus(404, socket);
 	}
 	while (std::getline(inputFile, line))

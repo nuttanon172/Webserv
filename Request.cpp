@@ -104,3 +104,8 @@ std::string &Request::getMethod()
 {
 	return method;
 }
+
+std::map<std::string, std::string> &Request::getHeaderMap()
+{
+	return header_map;
+}

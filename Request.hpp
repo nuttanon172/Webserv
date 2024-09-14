@@ -21,6 +21,7 @@ public:
 	~Request();
 	std::string &getPath();
 	std::string &getMethod();
+	std::map<std::string, std::string> &getHeaderMap();
 	void writeStream(char *str, int size);
 	bool parseRequestLine();
 	bool parseHttpHeaders();

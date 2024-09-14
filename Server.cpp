@@ -105,8 +105,9 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 	if (server_fd > max_socket)
 		max_socket = server_fd;
 	server_config.insert(std::make_pair(server_fd, serverBlock));
-	std::cout << GREEN << "create socket[" << server_fd << "]\n"
+	std::cout << GREEN << "1Create socket[" << server_fd << "]\n"
 			  << DEFAULT;
+	std::cout << GREEN << "2Max Socket: " << max_socket << '\n' << DEFAULT;
 }
 
 void Server::checkClient()
@@ -134,15 +135,12 @@ void Server::checkClient()
 				else
 				{
 					// std::cout << "Sending to socket: " << socket << "\n";
-					if (!client_map[socket])
-						client_map[socket] = new Client(socket, &server_config[3]);
+					//if (!client_map[socket])
+						//client_map[socket] = new Client(socket, &server_config[3]);
 					readRequest(socket);
 					client_map[socket]->buildResponse();
 					closeSocket(socket);
 					status--;
-					std::cout << "Socket: " << socket << '\n';
-					std::cout << "MaxSocket: " << max_socket << '\n';
-					// client_map[socket]->updateTime();
 					/* Display socket value */
 					std::cout << YELLOW << "Webserver waiting for client....\n"
 							  << DEFAULT;
@@ -180,9 +178,10 @@ void Server::acceptNewConnection(int listen_sockets)
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
-	//printServerConfig(server_config[listen_sockets]);
-	std::cout << GREEN << "accept socket[" << new_socket << "]\n"
+	// printServerConfig(server_config[listen_sockets]);
+	std::cout << GREEN << "1accept socket[" << new_socket << "]\n"
 			  << DEFAULT;
+	std::cout << GREEN << "1Max Socket: " << max_socket << '\n';
 	std::cout << "Recieve Request...\n";
 }
 
