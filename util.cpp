@@ -34,7 +34,7 @@ void printConfig(const std::vector<ServerConfig> &servers)
             std::cout << "    Path: " << loc.path << "\n";
             std::cout << "    Autoindex: " << (loc.autoindex ? "on" : "off") << "\n";
             // std::cout << "    Index: " << loc.index << "\n";
-            std::cout << "    Return: " << loc.return_path << "\n";
+           // std::cout << "    Return: " << loc.return_path << "\n";
 
             // Iterate through allow_methods map
             for (std::map<std::string, bool>::const_iterator method_it = loc.allow_methods.begin(); method_it != loc.allow_methods.end(); ++method_it)
