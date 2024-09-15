@@ -107,7 +107,8 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 	server_config.insert(std::make_pair(server_fd, serverBlock));
 	std::cout << GREEN << "1Create socket[" << server_fd << "]\n"
 			  << DEFAULT;
-	std::cout << GREEN << "2Max Socket: " << max_socket << '\n' << DEFAULT;
+	std::cout << GREEN << "2Max Socket: " << max_socket << '\n'
+			  << DEFAULT;
 }
 
 void Server::checkClient()
@@ -119,6 +120,7 @@ void Server::checkClient()
 	while (1)
 	{
 		memcpy(&ready_sockets, &current_sockets, sizeof(current_sockets)); /* because select is destructive */
+		//ready_sockets = current_sockets;
 		status = select(max_socket + 1, &ready_sockets, NULL, NULL, NULL);
 		if (status < 0)
 		{
@@ -135,24 +137,25 @@ void Server::checkClient()
 				else
 				{
 					// std::cout << "Sending to socket: " << socket << "\n";
-					//if (!client_map[socket])
-						//client_map[socket] = new Client(socket, &server_config[3]);
+					// if (!client_map[socket])
+					// client_map[socket] = new Client(socket, &server_config[3]);
+					client_map[socket]->updateTime();
 					readRequest(socket);
-					client_map[socket]->buildResponse();
-					closeSocket(socket);
+					if (client_map[socket]->buildResponse() == true)
+						closeSocket(socket);
 					status--;
 					/* Display socket value */
 					std::cout << YELLOW << "Webserver waiting for client....\n"
 							  << DEFAULT;
 				}
-				/* Check time each socket */
-				std::map<int, Client *>::iterator it = client_map.begin();
-				for (; it != client_map.end(); it++)
-				{
-					if (time(NULL) - it->second->getLastTime() > 5)
-						closeSocket(it->first);
-				}
 			}
+		}
+		/* Check time each socket */
+		std::map<int, Client *>::iterator it = client_map.begin();
+		for (; it != client_map.end(); it++)
+		{
+			if (time(NULL) - it->second->getLastTime() > 6)
+				closeSocket(it->first);
 		}
 	}
 }
@@ -162,15 +165,10 @@ void Server::acceptNewConnection(int listen_sockets)
 	int addrlen = sizeof(address);
 	new_socket = accept(listen_sockets, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 	if (new_socket < 0)
-	{
-		perror("Accept ERROR");
-		close(server_fd);
-		exit(EXIT_FAILURE);
-	}
+		return ;
 	if (fcntl(new_socket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		perror("NONBLOCK ERROR");
-		close(server_fd);
 		close(new_socket);
 		exit(EXIT_FAILURE);
 	}
@@ -197,8 +195,12 @@ bool Server::readRequest(int socket)
 		if (size < 0)
 			break;
 		else if (!size)
-			return (false); // no message -- close connection
-		buffer[size] = '\0';
+		{
+			memset(buffer, '\0', sizeof(buffer));
+			break ;
+		}
+		if (size < sizeof(buffer))
+			buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
 		client_map[new_socket]->getRequest()->writeStream(buffer, size);
@@ -210,24 +212,23 @@ bool Server::readRequest(int socket)
 void Server::closeSocket(int socket)
 {
 	int max = 0;
+	//FD_CLR(socket, &ready_sockets);
 	if (FD_ISSET(socket, &current_sockets))
 	{
 		FD_CLR(socket, &current_sockets);
-		FD_CLR(socket, &ready_sockets);
 		if (socket == max_socket)
 		{
 			for (int i = 0; i < max_socket; i++)
 			{
-				if (FD_ISSET(i, &current_sockets) || FD_ISSET(i, &ready_sockets))
+				if (FD_ISSET(i, &current_sockets))
 					max = i;
 			}
 			max_socket = max;
 		}
-		close(socket);
 		delete client_map[socket];
-		client_map[socket] = NULL;
-		client_map.erase(socket);
+		close(socket);
 	}
+	client_map.erase(socket);
 }
 
 void Server::shutdownServer()

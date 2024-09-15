@@ -10,27 +10,27 @@ Client::~Client()
 	delete resp;
 }
 
-void Client::buildResponse()
+bool Client::buildResponse()
 {
 	std::stringstream ss;
 
 	if (req->parseRequestLine() == false)
-		return ;
+		return false;
 	if (req->parseHttpHeaders() == false)
-		return ;
+		return false;
 	if (req->isMultipart() == true)
 		req->parseBody();
-	this->updateTime();
 	if (this->getResponse()->searchFile(this->getRequest(), socket) == true)
 		this->getResponse()->serveFile(getRequest()->getPath(), socket);
+	return true;
 }
 
-Request *Client::getRequest() const
+Request *Client::getRequest()
 {
 	return req;
 }
 
-Response *Client::getResponse() const
+Response *Client::getResponse()
 {
 	return resp;
 }

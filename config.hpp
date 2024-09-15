@@ -14,7 +14,7 @@ struct Location {
     //std::string return_path;
     std::string root;
     int client_max_body_size;
-    std::map<int , std::string>return_path;
+    std::map<int , std::string> return_path;
     std::vector<std::string> cgi_path;
     std::vector<std::string> cgi_ext;
 };

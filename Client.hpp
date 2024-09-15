@@ -18,12 +18,11 @@ private:
 	ServerConfig *serverBlock;
 
 public:
-	Request *getRequest() const;
-	Response *getResponse() const;
-	
 	Client(int socket, ServerConfig *paramBlocks);
 	~Client();
-	void buildResponse();
+	Request *getRequest();
+	Response *getResponse();
+	bool buildResponse();
 	void updateTime();
 	time_t getLastTime();
 };

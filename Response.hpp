@@ -20,17 +20,19 @@ public:
 	Response(const Response &obj);
 	Response &operator=(const Response &obj);
 	~Response();
-	bool searchFile(Request *req, int socket);
 	void buildStatusLine(int code);
 	void buildHeaders();
+	void buildHeadersRedirect(std::string host, std::string &path);
 	void buildBody();
 	void buildIndex();
 	void buildErrorBody(int code);
 	void buildHttpStatus(int code, int socket);
 	void buildHttpMessages();
+	bool searchFile(Request *req, int socket);
 	void serveFile(std::string &path, int socket);
 	void readFile(std::string &path, int socket);
-	void sendFavicon(int socket);
+	void redirectPath(Request *req, int code, int socket, std::string path);
+	//void sendFavicon(int socket);
 };
 
 #endif

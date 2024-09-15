@@ -42,6 +42,27 @@ void Response::buildHeaders()
 	header = ss.str().c_str();
 }
 
+void Response::buildHeadersRedirect(std::string host, std::string &path)
+{
+	std::stringstream ss;
+
+	if (host[0] != '/')
+		host = "/" + host;
+	if (serverBlock->server_name.empty() != true)
+	{
+		ss << "Server: " << serverBlock->server_name  << "\r\n";
+		ss << "Location: " << "http://" << host << path << "\r\n";
+	}
+	else
+		ss << "Location: " << "http://" << host << path << "\r\n";
+	ss << "Date: " + getCurrentTime() + "\r\n";
+	ss << "Connection: Keep-Alive\r\n";
+	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
+	ss << "Content-Length: 0" << "\r\n";
+	ss << "\r\n";
+	header = ss.str().c_str();
+}
+
 void Response::buildErrorBody(int code)
 {
 	std::stringstream ss;
@@ -109,29 +130,29 @@ void Response::readFile(std::string &path, int socket)
 
 bool Response::searchFile(Request *req, int socket)
 {
+	std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+	for (; it_location != serverBlock->locations.end(); it_location++)
+	{
+		if (req->getReqPath() != "/red")
+			break ;
+		if (it_location->return_path.empty() != true)
+		{
+			std::map<int, std::string>::iterator it_return = it_location->return_path.begin();
+			this->redirectPath(req, it_return->first, socket, it_return->second);
+			req->setPath(it_return->second);
+			return false;
+			//break ;
+		}
+	}
 	return true;
 }
 
-void Response::sendFavicon(int socket)
+void Response::redirectPath(Request *req, int code, int socket, std::string path)
 {
-	std::cout << "sending favicon\n";
-	buildStatusLine(200);
-	std::string path = "/home/ntairatt/WebServ/docs/favicon.ico";
-	readFile(path, socket);
-	std::stringstream ss;
-	ss << "Date: " + getCurrentTime() + "\r\n";
-	ss << "Server: " << serverBlock->server_name << "\r\n";
-	ss << "Connection: Keep-Alive\r\n";
-	ss << "Content-Type: image/x-icon\r\n";
-	ss << "Content-Length: " << body.size() << "\r\n";
-	ss << "\r\n";
-	header = ss.str();
-	//buildHeaders();
+	buildStatusLine(code);
+	buildHeadersRedirect(req->getHost(), path);
 	buildHttpMessages();
-	/*std::cout << "path: " << path << '\n';
-	std::cout << status_line;
-	std::cout << header;
-	std::cout << body;*/
+	std::cout << message;
 	send(socket, message.c_str(), message.size(), 0);
 }
 
