@@ -13,6 +13,7 @@ Client::~Client()
 bool Client::buildResponse()
 {
 	std::stringstream ss;
+	(void)serverBlock;
 
 	if (req->parseRequestLine() == false)
 		return false;

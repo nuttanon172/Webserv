@@ -193,10 +193,6 @@ void Response::serveFile(std::string &path, std::string &reqPath, int socket)
 	buildHeaders();
 	buildHttpMessages();
 	std::cout << "serveFile called\n";
-	/*std::cout << "path: " << path << '\n';
-	std::cout << status_line;
-	std::cout << header;
-	std::cout << body;*/
 	send(socket, message.c_str(), message.size(), 0);
 }
 

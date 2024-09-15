@@ -14,7 +14,6 @@ private:
 	int socket;
 	Request *req;
 	Response *resp;
-	//std::vector<ServerConfig> serverBlock;
 	ServerConfig *serverBlock;
 
 public:

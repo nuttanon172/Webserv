@@ -117,7 +117,6 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 void Server::checkClient()
 {
 	int status;
-	int new_max;
 
 	std::cout << "Webserver is running...\n";
 	while (1)
@@ -198,11 +197,12 @@ bool Server::readRequest(int socket)
 			break;
 		else if (!size)
 			break ;
-		if (size < sizeof(buffer))
+		if (size < (int)sizeof(buffer))
 			buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
-		client_map[new_socket]->getRequest()->writeStream(buffer, size);
+		if (client_map[socket])
+			client_map[socket]->getRequest()->writeStream(buffer, size);
 	}
 	std::cout << "-----------------------------------------------------\n";
 	return (true);
@@ -225,6 +225,7 @@ void Server::closeSocket(int socket)
 			max_socket = max;
 		}
 		delete client_map[socket];
+		client_map[socket] = NULL;
 		close(socket);
 	}
 	client_map.erase(socket);
