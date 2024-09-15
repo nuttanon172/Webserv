@@ -113,7 +113,6 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 		it_location_index = it_location->index.begin();
 
 	// check if it directory search for index inside else search for index
-	//std::cout << "reqpath: " << req_path << '\n';
 	if (isDirectory(path) == true || access(path.c_str(), R_OK) != 0)
 	{
 		if (path[path.size() - 1] != '/')

@@ -190,13 +190,12 @@ bool Server::readRequest(int socket)
 	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
-		size = recv(socket, buffer, sizeof(buffer), 0);
+		size = recv(socket, buffer, BUFFER_SIZE, 0);
 		if (size < 0)
 			break;
 		else if (!size)
 			break ;
-		if (size < (int)sizeof(buffer))
-			buffer[size] = '\0';
+		buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
 		if (client_map[socket])
