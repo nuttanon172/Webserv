@@ -158,6 +158,8 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             }
 
             iss >> current_location.path;
+            if (current_location.path[0] != '/')
+                current_location.path = "/" + current_location.path;
             std::string next_token;
             iss >> next_token;
 
@@ -360,6 +362,14 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 }
 
                 current_location.return_path[status_code] = url;
+                current_server.location_return_path.insert(std::make_pair(current_location.path, current_location.return_path));
+                /*std::cout << "path: " << current_server.location_return_path.begin()->first << '\n';
+                std::cout << "code: " << current_server.location_return_path.begin()->second.begin()->first << '\n';
+                std::cout << "path redirect: " << current_server.location_return_path.begin()->second.begin()->second << '\n';
+                std::cout << "-------\n";
+                std::cout << "path: " << current_location.path << '\n';
+                std::cout << "code: " << status_code << '\n';
+                std::cout << "path redirect: " << current_location.return_path[status_code] << '\n';*/
             }
         }
     }

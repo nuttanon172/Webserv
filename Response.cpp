@@ -33,7 +33,7 @@ void Response::buildHeaders()
 
 	ss << "Date: " + getCurrentTime() + "\r\n";
 	if (serverBlock->server_name.empty() != true)
-		ss << "Server: " << serverBlock->server_name  << "\r\n";
+		ss << "Server: " << serverBlock->server_name << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	// ss << "Keep-Alive: timeout=6, max=2\r\n"; no directive require
 	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
@@ -50,7 +50,7 @@ void Response::buildHeadersRedirect(std::string host, std::string &path)
 		host = "/" + host;
 	if (serverBlock->server_name.empty() != true)
 	{
-		ss << "Server: " << serverBlock->server_name  << "\r\n";
+		ss << "Server: " << serverBlock->server_name << "\r\n";
 		ss << "Location: " << "http://" << host << path << "\r\n";
 	}
 	else
@@ -75,7 +75,7 @@ void Response::buildErrorBody(int code)
 	ss << "<body>\n";
 	ss << "<h1>" << code << "</h1>\n";
 	ss << "<h1>Error " << code << "</h1>\n";
-	ss << "<p>" << status[code] << ".</p>"<< '\n';
+	ss << "<p>" << status[code] << ".</p>" << '\n';
 	ss << "</body>\n";
 	ss << "</html>\r\n";
 	body = ss.str().c_str();
@@ -98,15 +98,15 @@ void Response::readFile(std::string &path, int socket)
 	std::string tmp_path;
 	std::string line;
 	std::stringstream ss;
- 	//check if it directory search for index inside else search for index
+	// check if it directory search for index inside else search for index
 	if (isDirectory(path) == true || access(path.c_str(), R_OK) != 0)
 	{
 		if (path[path.size() - 1] != '/')
 			tmp_path = path + "/";
-		else 
+		else
 			tmp_path = path;
 		std::cout << "tmp_path: " << tmp_path << '\n';
-		for (;it != serverBlock->index.end();it++)
+		for (; it != serverBlock->index.end(); it++)
 		{
 			indexPath = tmp_path + *it;
 			std::cout << "FileName: " << *it << '\n';
@@ -115,7 +115,7 @@ void Response::readFile(std::string &path, int socket)
 			{
 				path = indexPath;
 				this->readFile(path, socket);
-				return ;
+				return;
 			}
 		}
 		tmp_path = tmp_path + serverBlock->error_pages[404];
@@ -130,18 +130,17 @@ void Response::readFile(std::string &path, int socket)
 
 bool Response::searchFile(Request *req, int socket)
 {
-	std::vector<Location>::iterator it_location = serverBlock->locations.begin();
-	for (; it_location != serverBlock->locations.end(); it_location++)
+	std::map<std::string, std::map<int, std::string> >::iterator it = serverBlock->location_return_path.begin();
+	std::string req_path = req->getReqPath();
+
+	for (; it != serverBlock->location_return_path.end(); it++)
 	{
-		if (req->getReqPath() != "/red")
-			break ;
-		if (it_location->return_path.empty() != true)
+		if (req_path == it->first)
 		{
-			std::map<int, std::string>::iterator it_return = it_location->return_path.begin();
+			std::map<int, std::string>::iterator it_return = it->second.begin();
 			this->redirectPath(req, it_return->first, socket, it_return->second);
 			req->setPath(it_return->second);
 			return false;
-			//break ;
 		}
 	}
 	return true;
@@ -159,7 +158,7 @@ void Response::redirectPath(Request *req, int code, int socket, std::string path
 void Response::serveFile(std::string &path, int socket)
 {
 	buildStatusLine(200);
-	//path = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
+	// path = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
 	readFile(path, socket);
 	buildHeaders();
 	buildHttpMessages();
@@ -173,5 +172,4 @@ void Response::serveFile(std::string &path, int socket)
 
 void Response::buildBody()
 {
-
 }
