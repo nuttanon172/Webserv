@@ -21,6 +21,7 @@ Server::~Server()
 	std::map<int, Client *>::iterator it = client_map.begin();
 	for (; it != client_map.end(); it++)
 		delete it->second;
+	this->shutdownServer();
 }
 
 void Server::initServer()
@@ -54,19 +55,21 @@ void Server::initSocket()
 			if (server_fd < 0)
 			{
 				perror("Cannot create socket");
-				exit(EXIT_FAILURE);
+				continue;
 			}
 			// Enable address reuse
 			if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
 			{
 				perror("setsockopt(SO_REUSEADDR) failed");
+				close (server_fd);
+				continue;
 			}
 			// SET SOCKET NONBLOCK
 			if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
 			{
 				perror("NONBLOCK ERROR");
 				close(server_fd);
-				exit(EXIT_FAILURE);
+				continue;
 			}
 			identifySocket(*port_it, *serverBlock_it);
 		}
@@ -143,7 +146,7 @@ void Server::checkClient()
 					readRequest(socket);
 					if (client_map[socket]->buildResponse() == true)
 						closeSocket(socket);
-					status--;
+					//status--;
 					/* Display socket value */
 					std::cout << YELLOW << "Webserver waiting for client....\n"
 							  << DEFAULT;
@@ -168,19 +171,18 @@ void Server::acceptNewConnection(int listen_sockets)
 		return ;
 	if (fcntl(new_socket, F_SETFL, O_NONBLOCK) < 0)
 	{
-		perror("NONBLOCK ERROR");
+		perror("FCNTL ERROR");
 		close(new_socket);
-		exit(EXIT_FAILURE);
+		return ;
 	}
 	client_map[new_socket] = new Client(new_socket, &server_config[listen_sockets]);
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
-	printServerConfig(server_config[listen_sockets]);
-	std::cout << GREEN << "1accept socket[" << new_socket << "]\n"
+	//printServerConfig(server_config[listen_sockets]);
+	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;
-	std::cout << GREEN << "1Max Socket: " << max_socket << '\n';
-	std::cout << "Recieve Request...\n";
+	std::cout << GREEN << "Max Socket: " << max_socket << '\n';
 }
 
 bool Server::readRequest(int socket)
@@ -195,10 +197,7 @@ bool Server::readRequest(int socket)
 		if (size < 0)
 			break;
 		else if (!size)
-		{
-			memset(buffer, '\0', sizeof(buffer));
 			break ;
-		}
 		if (size < sizeof(buffer))
 			buffer[size] = '\0';
 		// write to request string stream
@@ -233,4 +232,13 @@ void Server::closeSocket(int socket)
 
 void Server::shutdownServer()
 {
+	for (int i = 0;i < max_socket;i++)
+	{
+		if (FD_ISSET(i, &listen_sockets)) /* clean listen sockets */
+		{
+			close(i);
+			server_config.erase(i);
+		}
+		closeSocket(i); /* clean client sockets */
+	}
 }

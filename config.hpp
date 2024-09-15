@@ -11,7 +11,6 @@ struct Location {
     std::map<std::string , bool> allow_methods;//--> maps string {GET , TRUE} post delete
     bool autoindex;
     std::vector<std::string> index;
-    //std::string return_path;
     std::string root;
     int client_max_body_size;
     std::map<int , std::string> return_path;

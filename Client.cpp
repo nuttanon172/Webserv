@@ -21,7 +21,7 @@ bool Client::buildResponse()
 	if (req->isMultipart() == true)
 		req->parseBody();
 	if (this->getResponse()->searchFile(this->getRequest(), socket) == true)
-		this->getResponse()->serveFile(getRequest()->getPath(), socket);
+		this->getResponse()->serveFile(getRequest()->getPath(), getRequest()->getReqPath(), socket);
 	return true;
 }
 

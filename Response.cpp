@@ -90,36 +90,67 @@ void Response::buildHttpStatus(int code, int socket)
 	send(socket, message.c_str(), message.size(), 0);
 }
 
-void Response::readFile(std::string &path, int socket)
+void Response::readFile(std::string &path, std::string &reqPath, int socket)
 {
 	std::ifstream inputFile(path.c_str());
-	std::vector<std::string>::iterator it = serverBlock->index.begin();
+	std::vector<std::string>::iterator it_server_index = serverBlock->index.begin();
+
+	std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+	std::vector<std::string>::iterator it_location_index = it_location->index.begin();
+
 	std::string indexPath;
 	std::string tmp_path;
+	std::string location_path;
 	std::string line;
 	std::stringstream ss;
+	//std::string req_path = path;
+
 	// check if it directory search for index inside else search for index
+	//std::cout << "reqpath: " << req_path << '\n';
 	if (isDirectory(path) == true || access(path.c_str(), R_OK) != 0)
 	{
 		if (path[path.size() - 1] != '/')
 			tmp_path = path + "/";
 		else
 			tmp_path = path;
-		std::cout << "tmp_path: " << tmp_path << '\n';
-		for (; it != serverBlock->index.end(); it++)
+		//std::cout << "tmp_path: " << tmp_path << '\n';
+		for (; it_location != serverBlock->locations.end(); it_location++)
 		{
-			indexPath = tmp_path + *it;
-			std::cout << "FileName: " << *it << '\n';
-			std::cout << "FilePath: " << indexPath << '\n';
+			//std::cout << "location path: " << it_location->path << '\n';
+			//std::cout << "reqPath: " << reqPath << '\n';
+			location_path = it_location->path;
+			if (reqPath == location_path || reqPath == location_path + "/")
+			{
+				it_location_index = it_location->index.begin();
+				for (; it_location_index != it_location->index.end(); it_location_index++)
+				{
+					indexPath = tmp_path + *it_location_index;
+					//std::cout << "Location FileName: " << *it_location_index << '\n';
+					//std::cout << "Location FilePath: " << indexPath << '\n';
+					if (access(indexPath.c_str(), R_OK) == 0)
+					{
+						path = indexPath;
+						this->readFile(path, reqPath, socket);
+						return;
+					}
+				}
+			}
+		}
+		//std::cout << "tmp_path: " << tmp_path << '\n';
+		for (; it_server_index != serverBlock->index.end(); it_server_index++)
+		{
+			indexPath = tmp_path + *it_server_index;
+			//std::cout << "Server FileName: " << *it_server_index << '\n';
+			//std::cout << "Server FilePath: " << indexPath << '\n';
 			if (access(indexPath.c_str(), R_OK) == 0)
 			{
 				path = indexPath;
-				this->readFile(path, socket);
+				this->readFile(path, reqPath, socket);
 				return;
 			}
 		}
 		tmp_path = tmp_path + serverBlock->error_pages[404];
-		std::cout << "tmp_path: " << tmp_path << '\n';
+		//std::cout << "tmp_path: " << tmp_path << '\n';
 		if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
 			this->buildHttpStatus(404, socket);
 	}
@@ -139,7 +170,6 @@ bool Response::searchFile(Request *req, int socket)
 		{
 			std::map<int, std::string>::iterator it_return = it->second.begin();
 			this->redirectPath(req, it_return->first, socket, it_return->second);
-			req->setPath(it_return->second);
 			return false;
 		}
 	}
@@ -155,11 +185,11 @@ void Response::redirectPath(Request *req, int code, int socket, std::string path
 	send(socket, message.c_str(), message.size(), 0);
 }
 
-void Response::serveFile(std::string &path, int socket)
+void Response::serveFile(std::string &path, std::string &reqPath, int socket)
 {
 	buildStatusLine(200);
 	// path = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
-	readFile(path, socket);
+	readFile(path, reqPath, socket);
 	buildHeaders();
 	buildHttpMessages();
 	std::cout << "serveFile called\n";

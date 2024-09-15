@@ -29,7 +29,7 @@ bool Request::parseRequestLine()
 	req_path = path;
 	path = makePath(path);
 	//std::cout << "Root: " << serverBlock->root << '\n';
-	std::cout << "Path: " << path << '\n';
+	std::cout << "Request line Path: " << path << '\n';
 	return (true);
 }
 
