@@ -95,13 +95,14 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
 		perror("bind failed");
-		exit(EXIT_FAILURE);
+		close(server_fd);
+		return ;
 	}
 	if (listen(server_fd, 10) < 0)
 	{
 		perror("Listen ERROR");
 		close(server_fd);
-		exit(EXIT_FAILURE);
+		return ;
 	}
 	FD_SET(server_fd, &listen_sockets); /* add new socket to set */
 	FD_SET(server_fd, &current_sockets);
@@ -133,14 +134,10 @@ void Server::checkClient()
 		{
 			if (FD_ISSET(socket, &ready_sockets))
 			{
-				// std::cout << "Select socket: " << socket << '\n';
 				if (FD_ISSET(socket, &listen_sockets))
 					this->acceptNewConnection(socket);
 				else
 				{
-					// std::cout << "Sending to socket: " << socket << "\n";
-					// if (!client_map[socket])
-					// client_map[socket] = new Client(socket, &server_config[3]);
 					client_map[socket]->updateTime();
 					readRequest(socket);
 					if (client_map[socket]->buildResponse() == true)
@@ -178,7 +175,8 @@ void Server::acceptNewConnection(int listen_sockets)
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
-	//printServerConfig(server_config[listen_sockets]);
+	printServerConfig(server_config[listen_sockets]);
+	//std::vector<std::string>::iterator
 	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;
 	std::cout << GREEN << "Max Socket: " << max_socket << '\n';

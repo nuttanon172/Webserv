@@ -285,6 +285,28 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                     }
                 }
             }
+            else if (key == "cgi_path")
+            {
+                std::string path;
+                while (iss >> path)
+                {
+                    if (in_location_block)
+                    {
+                        current_location.cgi_path.push_back(path);
+                    }
+                }
+            }
+            else if (key == "cgi_ext")
+            {
+                std::string path;
+                while (iss >> path)
+                {
+                    if (in_location_block)
+                    {
+                        current_location.cgi_ext.push_back(path);
+                    }
+                }
+            }
             else if (key == "client_max_body_size")
             {
                 std::string bodysize;
