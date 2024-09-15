@@ -14,15 +14,14 @@ private:
 	int socket;
 	Request *req;
 	Response *resp;
-	std::vector<ServerConfig> serverBlock;
+	ServerConfig *serverBlock;
 
 public:
-	Request *getRequest() const;
-	Response *getResponse() const;
-	
-	Client(int socket, std::vector<ServerConfig> &paramBlocks);
+	Client(int socket, ServerConfig *paramBlocks);
 	~Client();
-	void buildResponse();
+	Request *getRequest();
+	Response *getResponse();
+	bool buildResponse();
 	void updateTime();
 	time_t getLastTime();
 };

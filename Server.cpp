@@ -7,10 +7,11 @@
 
 Server::Server(const std::string &pathConfig)
 {
-	if (!parseConfigFile(pathConfig, serverBlock)) {
-        std::cout << "Failed to parse config file" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+	if (!parseConfigFile(pathConfig, serverBlock))
+	{
+		std::cout << "Failed to parse config file" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 	printConfig(serverBlock);
 	initServer();
 }
@@ -20,6 +21,7 @@ Server::~Server()
 	std::map<int, Client *>::iterator it = client_map.begin();
 	for (; it != client_map.end(); it++)
 		delete it->second;
+	this->shutdownServer();
 }
 
 void Server::initServer()
@@ -48,26 +50,36 @@ void Server::initSocket()
 		port_it = serverBlock_it->listen_ports.begin();
 		for (; port_it != serverBlock_it->listen_ports.end(); port_it++)
 		{
+			std::cout << "Port: " << *port_it << std::endl;
 			server_fd = socket(AF_INET, SOCK_STREAM, 0);
 			if (server_fd < 0)
 			{
 				perror("Cannot create socket");
-				exit(EXIT_FAILURE);
+				continue;
 			}
 			// Enable address reuse
 			if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
 			{
 				perror("setsockopt(SO_REUSEADDR) failed");
+				close (server_fd);
+				continue;
 			}
 			// SET SOCKET NONBLOCK
 			if (fcntl(server_fd, F_SETFL, O_NONBLOCK) < 0)
 			{
 				perror("NONBLOCK ERROR");
 				close(server_fd);
-				exit(EXIT_FAILURE);
+				continue;
 			}
 			identifySocket(*port_it, *serverBlock_it);
 		}
+	}
+	std::map<int, ServerConfig>::iterator it = server_config.begin();
+	for (; it != server_config.end(); it++)
+	{
+		std::cout << "Socket: " << it->first << std::endl;
+		std::cout << "Server: " << it->second.server_name << std::endl;
+		std::cout << "Port: " << it->second.listen_ports[0] << std::endl;
 	}
 }
 
@@ -95,22 +107,23 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 	FD_SET(server_fd, &current_sockets);
 	if (server_fd > max_socket)
 		max_socket = server_fd;
-	config_map[server_fd] = &serverBlock;
-	// socketVec.push_back(server_fd);
-	std::cout << GREEN << "create socket[" << server_fd << "]\n"
+	server_config.insert(std::make_pair(server_fd, serverBlock));
+	std::cout << GREEN << "1Create socket[" << server_fd << "]\n"
+			  << DEFAULT;
+	std::cout << GREEN << "2Max Socket: " << max_socket << '\n'
 			  << DEFAULT;
 }
 
 void Server::checkClient()
 {
 	int status;
-	int new_max;
 
+	std::cout << "Webserver is running...\n";
 	while (1)
 	{
 		memcpy(&ready_sockets, &current_sockets, sizeof(current_sockets)); /* because select is destructive */
+		//ready_sockets = current_sockets;
 		status = select(max_socket + 1, &ready_sockets, NULL, NULL, NULL);
-		std::cout << "waiting...\n";
 		if (status < 0)
 		{
 			perror("Select Error");
@@ -118,70 +131,33 @@ void Server::checkClient()
 		}
 		for (int socket = 0; socket <= max_socket; socket++)
 		{
-			std::cout << "Socket: " << socket << '\n';
-			std::cout << "Max_Socket: " << max_socket << '\n'
-					  << '\n';
 			if (FD_ISSET(socket, &ready_sockets))
 			{
-				std::cout << "Select socket: " << socket << '\n';
+				// std::cout << "Select socket: " << socket << '\n';
 				if (FD_ISSET(socket, &listen_sockets))
 					this->acceptNewConnection(socket);
 				else
 				{
-					std::cout << "Sending to socket: " << socket << "\n";
-					checkRequest(socket);
-					client_map[socket]->buildResponse();
-					// std::string filename = "/home/ntairatt/WebServ/docs/fusion_web/index.html";
-					// client_map[socket]->getResponse()->serveFile(filename, socket);
-					if (FD_ISSET(socket, &current_sockets))
-					{
-						FD_CLR(socket, &current_sockets);
-						new_max = 0;
-						if (socket == max_socket)
-						{
-							for (int i = 0; i < max_socket; i++)
-							{
-								if (FD_ISSET(i, &current_sockets))
-									new_max = i;
-							}
-							max_socket = new_max;
-							close(socket);
-						}
-						delete client_map[socket];
-						client_map.erase(socket);
-					}
-					status--;
-					/* Check time each socket */
-					/*std::map<int, Client *>::iterator it = client_map.begin();
-					for (it; it != client_map.end(); it++)
-					{
-						if (time(NULL) - it->second->getLastTime() > 5)
-						{
-							if (FD_ISSET(socket, &current_sockets))
-								FD_CLR(socket, &current_sockets);
-							new_max = 0;
-							if (it->first == max_socket)
-							{
-								for (int i = 0; i < max_socket; i++)
-								{
-									if (FD_ISSET(i, &current_sockets))
-										new_max = i;
-								}
-								max_socket = new_max;
-							}
-							close(it->first);
-							std::cout << YELLOW << "Socket [" << it->first << "] closed\n";
-							client_map.erase(it->first);
-						}
-					}*/
+					// std::cout << "Sending to socket: " << socket << "\n";
+					// if (!client_map[socket])
+					// client_map[socket] = new Client(socket, &server_config[3]);
+					client_map[socket]->updateTime();
+					readRequest(socket);
+					if (client_map[socket]->buildResponse() == true)
+						closeSocket(socket);
+					//status--;
 					/* Display socket value */
-					std::cout << "status: " << status << ", message sent\n";
-					std::cout << "Max_Socket: " << max_socket << '\n'
-							  << '\n';
 					std::cout << YELLOW << "Webserver waiting for client....\n"
 							  << DEFAULT;
 				}
 			}
+		}
+		/* Check time each socket */
+		std::map<int, Client *>::iterator it = client_map.begin();
+		for (; it != client_map.end(); it++)
+		{
+			if (time(NULL) - it->second->getLastTime() > 6)
+				closeSocket(it->first);
 		}
 	}
 }
@@ -191,65 +167,79 @@ void Server::acceptNewConnection(int listen_sockets)
 	int addrlen = sizeof(address);
 	new_socket = accept(listen_sockets, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 	if (new_socket < 0)
-	{
-		perror("Accept ERROR");
-		close(server_fd);
-		exit(EXIT_FAILURE);
-	}
+		return ;
 	if (fcntl(new_socket, F_SETFL, O_NONBLOCK) < 0)
 	{
-		perror("NONBLOCK ERROR");
-		close(server_fd);
+		perror("FCNTL ERROR");
 		close(new_socket);
-		exit(EXIT_FAILURE);
+		return ;
 	}
-	client_map[new_socket] = new Client(new_socket, serverBlock);
+	client_map[new_socket] = new Client(new_socket, &server_config[listen_sockets]);
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
-	std::cout << GREEN << "accept socket[" << new_socket << "]\n"
+	//printServerConfig(server_config[listen_sockets]);
+	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;
-	std::cout << "new_socket = " << new_socket << '\n';
-	std::cout << "max_socket = " << max_socket << '\n';
-	std::cout << "Recieve Request...\n";
+	std::cout << GREEN << "Max Socket: " << max_socket << '\n';
 }
 
-bool Server::checkRequest(int socket)
+bool Server::readRequest(int socket)
 {
 	char buffer[10000];
 	int size;
 
-	client_map[socket]->updateTime();
+	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
 		size = recv(socket, buffer, sizeof(buffer), 0);
-		std::cout << "size: " << size << '\n';
 		if (size < 0)
 			break;
 		else if (!size)
-			return (false); // no message -- close connection
-		buffer[size] = '\0';
+			break ;
+		if (size < (int)sizeof(buffer))
+			buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
-		client_map[new_socket]->getRequest()->writeStream(buffer, size);
+		if (client_map[socket])
+			client_map[socket]->getRequest()->writeStream(buffer, size);
 	}
+	std::cout << "-----------------------------------------------------\n";
 	return (true);
 }
 
-void Server::closeSocket()
+void Server::closeSocket(int socket)
 {
-	std::vector<int>::iterator it = socketVec.begin();
-	for (; it != socketVec.end(); it++)
+	int max = 0;
+	//FD_CLR(socket, &ready_sockets);
+	if (FD_ISSET(socket, &current_sockets))
 	{
-		FD_CLR(*it, &listen_sockets);
-		FD_CLR(*it, &current_sockets);
-		close(*it);
-		std::cout << RED << "socket[" << *it << "] closed...\n"
-				  << DEFAULT;
+		FD_CLR(socket, &current_sockets);
+		if (socket == max_socket)
+		{
+			for (int i = 0; i < max_socket; i++)
+			{
+				if (FD_ISSET(i, &current_sockets))
+					max = i;
+			}
+			max_socket = max;
+		}
+		delete client_map[socket];
+		client_map[socket] = NULL;
+		close(socket);
 	}
+	client_map.erase(socket);
 }
 
 void Server::shutdownServer()
 {
-	closeSocket();
+	for (int i = 0;i < max_socket;i++)
+	{
+		if (FD_ISSET(i, &listen_sockets)) /* clean listen sockets */
+		{
+			close(i);
+			server_config.erase(i);
+		}
+		closeSocket(i); /* clean client sockets */
+	}
 }
