@@ -176,7 +176,7 @@ void Server::acceptNewConnection(int listen_sockets)
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
-	// printServerConfig(server_config[listen_sockets]);
+	printServerConfig(server_config[listen_sockets]);
 	std::cout << GREEN << "1accept socket[" << new_socket << "]\n"
 			  << DEFAULT;
 	std::cout << GREEN << "1Max Socket: " << max_socket << '\n';
