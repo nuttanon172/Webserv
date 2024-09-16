@@ -26,10 +26,12 @@ bool Request::parseRequestLine()
 
 	stream >> method;
 	stream >> path;
+	path = filterSlashes(path);
 	req_path = path;
-	path = makePath(path);
+	path = makePath(path); // return full path
 	//std::cout << "Root: " << serverBlock->root << '\n';
-	std::cout << "Request line Path: " << path << '\n';
+	std::cout << "Request Full Path: " << path << '\n';
+	std::cout << "Request Path: " << req_path << '\n';
 	return (true);
 }
 
@@ -71,8 +73,6 @@ bool Request::parseHttpHeaders()
 		colon = buffer.find_first_of(':');
 		key = buffer.substr(0, colon);
 		value = buffer.substr(colon + 2, buffer.size() - (colon + 2) - 1); // -1 trim \r
-		//if (!key.length() || !value.length())
-		//	return (false);
 		header_map[key] = value;
 		std::getline(inputStream, buffer);
 	}

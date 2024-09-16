@@ -34,7 +34,7 @@ void printConfig(const std::vector<ServerConfig> &servers)
             std::cout << "    Path: " << loc.path << "\n";
             std::cout << "    Autoindex: " << (loc.autoindex ? "on" : "off") << "\n";
             // std::cout << "    Index: " << loc.index << "\n";
-           // std::cout << "    Return: " << loc.return_path << "\n";
+            // std::cout << "    Return: " << loc.return_path << "\n";
 
             // Iterate through allow_methods map
             for (std::map<std::string, bool>::const_iterator method_it = loc.allow_methods.begin(); method_it != loc.allow_methods.end(); ++method_it)
@@ -96,4 +96,28 @@ bool isDirectory(const std::string &path)
         return true; // Path is a directory
     else
         return false; // Path exists, but it's not a directory
+}
+
+std::string filterSlashes(std::string &path)
+{
+    std::string result;
+    bool lastSlash = false;
+
+    for (size_t i = 0; i < path.length(); ++i)
+    {
+        if (path[i] == '/')
+        {
+            if (!lastSlash)
+            {
+                result += path[i];
+            }
+            lastSlash = true;
+        }
+        else
+        {
+            result += path[i];
+            lastSlash = false;
+        }
+    }
+    return result;
 }

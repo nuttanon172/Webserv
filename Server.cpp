@@ -179,7 +179,7 @@ void Server::acceptNewConnection(int listen_sockets)
 	//std::vector<std::string>::iterator
 	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;
-	std::cout << GREEN << "Max Socket: " << max_socket << '\n';
+	std::cout << GREEN << "Max Socket: " << max_socket << '\n' << DEFAULT;
 }
 
 bool Server::readRequest(int socket)
