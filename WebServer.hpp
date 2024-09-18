@@ -34,6 +34,4 @@
 #include "Client.hpp"
 #include "util.hpp"
 
-std::string ft_itos(int nbr);
-
 #endif

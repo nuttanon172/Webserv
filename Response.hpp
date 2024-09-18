@@ -26,13 +26,13 @@ public:
 	void buildBody();
 	void buildIndex();
 	void buildErrorBody(int code);
-	void buildHttpStatus(int code, int socket);
+	void buildHttpCode(int code, int socket);
 	void buildHttpMessages();
 	bool searchFile(Request *req, int socket);
 	void serveFile(std::string &path, std::string &reqPath, int socket);
 	void readFile(std::string &path, std::string &reqPath, int socket);
 	void redirectPath(Request *req, int code, int socket, std::string path);
-	//void sendFavicon(int socket);
+	bool isMethodAllow(std::string &method, std::string path);
 };
 
 #endif

@@ -1,10 +1,5 @@
 #include "Server.hpp"
 
-/*Server::Server(const std::vector<ServerConfig> &obj) : serverBlock(obj)
-{
-	initServer();
-}*/
-
 Server::Server(const std::string &pathConfig)
 {
 	if (!parseConfigFile(pathConfig, serverBlock))
@@ -14,6 +9,30 @@ Server::Server(const std::string &pathConfig)
 	}
 	printConfig(serverBlock);
 	initServer();
+}
+
+Server::Server(const Server &obj)
+{
+	*this = obj;
+}
+
+Server &Server::operator=(const Server &obj)
+{
+	if (this != &obj)
+	{
+		server_fd = obj.server_fd;
+		new_socket = obj.new_socket;
+		max_socket = obj.max_socket;
+		address = obj.address;
+		serverBlock = obj.serverBlock;
+		socketVec = obj.socketVec;
+		current_sockets = obj.current_sockets;
+		ready_sockets = obj.ready_sockets;
+		listen_sockets = obj.listen_sockets;
+		server_config = obj.server_config;
+		client_map = obj.client_map;
+	}
+	return *this;
 }
 
 Server::~Server()
@@ -142,7 +161,6 @@ void Server::checkClient()
 					readRequest(socket);
 					if (client_map[socket]->buildResponse() == true)
 						closeSocket(socket);
-					//status--;
 					/* Display socket value */
 					std::cout << YELLOW << "Webserver waiting for client....\n"
 							  << DEFAULT;

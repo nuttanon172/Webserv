@@ -19,17 +19,13 @@ private:
 	fd_set current_sockets;
 	fd_set ready_sockets;
 	fd_set listen_sockets;
-	bool readRequest(int socket);
 	std::map<int, ServerConfig> server_config;
 	std::map<int, Client *> client_map;
-	//Request server_req;
 public:
-	//Server();
-	//Server(const std::vector<ServerConfig> &obj);
 	Server(const std::string &pathConfig);
-	//Server(std::vector<ServerBlock> &serveBlock);
+	Server(const Server &obj);
+	Server &operator=(const Server &obj);
 	~Server();
-	//Server &operator=(const Server &obj);
 	void initServer();
 	void startServer();
 	void initSocket();
@@ -38,6 +34,7 @@ public:
 	void acceptNewConnection(int listen_sockets);
 	void closeSocket(int socket);
 	void shutdownServer();
+	bool readRequest(int socket);
 };
 
 #endif

@@ -19,6 +19,8 @@ private:
 
 public:
 	Request(ServerConfig *serverBlock);
+	Request(const Request &obj);
+	Request &operator=(const Request &obj);
 	~Request();
 	std::string &getPath();
 	std::string &getMethod();

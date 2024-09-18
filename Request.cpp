@@ -5,6 +5,28 @@ Request::Request(ServerConfig *serverBlock) : serverBlock(serverBlock)
 
 }
 
+Request::Request(const Request &obj)
+{
+	*this = obj;
+}
+
+Request &Request::operator=(const Request &obj)
+{
+	if (this != &obj)
+	{
+		inputStream << obj.inputStream.rdbuf();
+		body << obj.body.rdbuf();
+		method = obj.method;
+		path = obj.method;
+		req_path = obj.method;
+		boundaryStart = obj.boundaryStart;
+		boundaryEnd = obj.boundaryEnd;
+		serverBlock = obj.serverBlock;
+		header_map = obj.header_map;
+	}
+	return *this;
+}
+
 Request::~Request()
 {
 	inputStream.clear();

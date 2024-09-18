@@ -9,6 +9,25 @@ Response::Response(ServerConfig *serverBlock) : serverBlock(serverBlock)
 	message = "";
 }
 
+Response::Response(const Response &obj)
+{
+	*this = obj;
+}
+
+Response &Response::operator=(const Response &obj)
+{
+	if (this != &obj)
+	{
+		status = obj.status;
+		status_line = obj.status_line;
+		header = obj.header;
+		body = obj.body;
+		message = obj.message;
+		serverBlock = obj.serverBlock;
+	}
+	return *this;
+}
+
 Response::~Response()
 {
 	status_line = "";
@@ -81,13 +100,34 @@ void Response::buildErrorBody(int code)
 	body = ss.str().c_str();
 }
 
-void Response::buildHttpStatus(int code, int socket)
+void Response::buildHttpCode(int code, int socket)
 {
 	buildStatusLine(code);
 	buildErrorBody(code);
 	buildHeaders();
 	buildHttpMessages();
 	send(socket, message.c_str(), message.size(), 0);
+}
+
+bool Response::isMethodAllow(std::string &method, std::string path)
+{
+	if (serverBlock->locations.empty() != true)
+	{
+		std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+		for (; it_location != serverBlock->locations.end(); it_location++)
+		{
+			if (it_location->path == path && it_location->allow_methods.empty() != true)
+			{
+				std::map<std::string, bool>::iterator it_allow = it_location->allow_methods.begin();
+				for (;it_allow != it_location->allow_methods.end(); it_allow++)
+				{
+					if (it_allow->first == method && it_allow->second == false)
+						return false;
+				}
+			}
+		}
+	}
+	return true;
 }
 
 void Response::readFile(std::string &path, std::string &reqPath, int socket)
@@ -164,7 +204,7 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 		tmp_path = tmp_path + serverBlock->error_pages[404];
 		//std::cout << "tmp_path: " << tmp_path << '\n';
 		if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
-			this->buildHttpStatus(404, socket);
+			this->buildHttpCode(404, socket);
 	}
 	while (std::getline(inputFile, line))
 		ss << line << "\r\n";
