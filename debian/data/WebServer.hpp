@@ -28,7 +28,10 @@
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include <ctime>
+<<<<<<< HEAD
 #include <sys/wait.h>
+=======
+>>>>>>> 4cc5161f3f083c8e5f0dcfff4a93f1b17f661f07
 #include "Server.hpp"
 #include "Response.hpp"
 #include "Request.hpp"

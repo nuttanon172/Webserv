@@ -16,7 +16,6 @@ private:
 	std::string message;
 	ServerConfig *serverBlock;
 public:
-
 	Response(ServerConfig *serverBlock);
 	Response(const Response &obj);
 	Response &operator=(const Response &obj);

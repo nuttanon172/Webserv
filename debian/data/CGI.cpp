@@ -84,9 +84,13 @@ void CGI::get_current_directory() {
 		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory + "&" +this->get_body());
 	}
 	else
+<<<<<<< HEAD
     {
 		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory);
     }
+=======
+		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory);
+>>>>>>> 4cc5161f3f083c8e5f0dcfff4a93f1b17f661f07
 }
 
 void CGI::get_contentType() {
@@ -161,7 +165,11 @@ std::string CGI::cgi() {
 		close(this->pipeid[1]); // Close write end of the pipe in child
 		close(this->pipefd[0]);
 		close(this->pipefd[1]);
+<<<<<<< HEAD
 		char* const args[] = {const_cast<char*>(this->get_intepeter().c_str()), NULL};
+=======
+		char* const args[] = {const_cast<char*>(this->get_intepeter().c_str()), nullptr};
+>>>>>>> 4cc5161f3f083c8e5f0dcfff4a93f1b17f661f07
 		this->gen_env();
 		// std::cout << environ << std::endl;
 		if (execve(this->get_intepeter().c_str(), args, environ) == -1) {
