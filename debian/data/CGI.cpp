@@ -196,5 +196,3 @@ std::string CGI::cgi() {
 	}
 	return 0;
 }
-
-
