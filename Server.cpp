@@ -80,7 +80,7 @@ void Server::initSocket()
 			if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
 			{
 				perror("setsockopt(SO_REUSEADDR) failed");
-				close (server_fd);
+				close(server_fd);
 				continue;
 			}
 			// SET SOCKET NONBLOCK
@@ -115,13 +115,13 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 	{
 		perror("bind failed");
 		close(server_fd);
-		return ;
+		return;
 	}
 	if (listen(server_fd, 10) < 0)
 	{
 		perror("Listen ERROR");
 		close(server_fd);
-		return ;
+		return;
 	}
 	FD_SET(server_fd, &listen_sockets); /* add new socket to set */
 	FD_SET(server_fd, &current_sockets);
@@ -142,7 +142,7 @@ void Server::checkClient()
 	while (1)
 	{
 		memcpy(&ready_sockets, &current_sockets, sizeof(current_sockets)); /* because select is destructive */
-		//ready_sockets = current_sockets;
+		// ready_sockets = current_sockets;
 		status = select(max_socket + 1, &ready_sockets, NULL, NULL, NULL);
 		if (status < 0)
 		{
@@ -171,7 +171,7 @@ void Server::checkClient()
 		std::map<int, Client *>::iterator it = client_map.begin();
 		for (; it != client_map.end(); it++)
 		{
-			if (time(NULL) - it->second->getLastTime() > 6)
+			if (time(NULL) - it->second->getLastTime() > TIME_OUT)
 				closeSocket(it->first);
 		}
 	}
@@ -182,22 +182,23 @@ void Server::acceptNewConnection(int listen_sockets)
 	int addrlen = sizeof(address);
 	new_socket = accept(listen_sockets, (struct sockaddr *)&address, (socklen_t *)&addrlen);
 	if (new_socket < 0)
-		return ;
+		return;
 	if (fcntl(new_socket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		perror("FCNTL ERROR");
 		close(new_socket);
-		return ;
+		return;
 	}
 	client_map[new_socket] = new Client(new_socket, &server_config[listen_sockets]);
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
 	printServerConfig(server_config[listen_sockets]);
-	//std::vector<std::string>::iterator
+	// std::vector<std::string>::iterator
 	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;
-	std::cout << GREEN << "Max Socket: " << max_socket << '\n' << DEFAULT;
+	std::cout << GREEN << "Max Socket: " << max_socket << '\n'
+			  << DEFAULT;
 }
 
 bool Server::readRequest(int socket)
@@ -212,7 +213,7 @@ bool Server::readRequest(int socket)
 		if (size < 0)
 			break;
 		else if (!size)
-			break ;
+			break;
 		buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
@@ -226,7 +227,7 @@ bool Server::readRequest(int socket)
 void Server::closeSocket(int socket)
 {
 	int max = 0;
-	//FD_CLR(socket, &ready_sockets);
+	// FD_CLR(socket, &ready_sockets);
 	if (FD_ISSET(socket, &current_sockets))
 	{
 		FD_CLR(socket, &current_sockets);
@@ -248,7 +249,7 @@ void Server::closeSocket(int socket)
 
 void Server::shutdownServer()
 {
-	for (int i = 0;i < max_socket;i++)
+	for (int i = 0; i < max_socket; i++)
 	{
 		if (FD_ISSET(i, &listen_sockets)) /* clean listen sockets */
 		{

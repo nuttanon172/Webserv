@@ -3,10 +3,12 @@
 Server *serverHandler;
 std::string *path;
 
-void signalHandler(int signal) {
+void signalHandler(int signal)
+{
 	(void)signal;
 	serverHandler->shutdownServer();
-	std::cout << RED << "\nWebserver shutting down...\n" << DEFAULT;
+	std::cout << RED << "\nWebserver shutting down...\n"
+			  << DEFAULT;
 	delete serverHandler;
 	delete path;
 	exit(EXIT_SUCCESS);

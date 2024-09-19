@@ -12,6 +12,7 @@ private:
 	std::string method;
 	std::string path;
 	std::string req_path;
+	std::string protocal;
 	std::string boundaryStart;
 	std::string boundaryEnd;
 	ServerConfig *serverBlock;
@@ -35,6 +36,7 @@ public:
 	bool parseHttpHeaders();
 	bool parseBody();
 	bool isMultipart();
+	bool isCorrectHost();
 };
 
 #endif

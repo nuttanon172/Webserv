@@ -15,6 +15,7 @@ private:
 	std::string body;
 	std::string message;
 	ServerConfig *serverBlock;
+
 public:
 	Response(ServerConfig *serverBlock);
 	Response(const Response &obj);

@@ -2,7 +2,6 @@
 
 Request::Request(ServerConfig *serverBlock) : serverBlock(serverBlock)
 {
-
 }
 
 Request::Request(const Request &obj)
@@ -48,13 +47,20 @@ bool Request::parseRequestLine()
 
 	stream >> method;
 	stream >> path;
+	stream >> protocal;
 	path = filterSlashes(path);
+	if (path[0] != '/' || path.find_first_of('\\') != std::string::npos)
+		return false;
+	if (method != "GET" && method != "POST" && method != "DELETE")
+		return false;
+	if (protocal != "HTTP/1.1")
+		return false;
 	req_path = path;
 	path = makePath(path); // return full path
-	//std::cout << "Root: " << serverBlock->root << '\n';
+	// std::cout << "Root: " << serverBlock->root << '\n';
 	std::cout << "Request Full Path: " << path << '\n';
 	std::cout << "Request Path: " << req_path << '\n';
-	return (true);
+	return true;
 }
 
 std::string Request::makePath(std::string &dest)
@@ -70,7 +76,7 @@ std::string Request::makePath(std::string &dest)
 		pos = dest.find_first_not_of('/');
 		fileName = dest.substr(pos);
 		return (serverBlock->root + fileName);
-		//std::cout << "pos: " << pos << '\n';
+		// std::cout << "pos: " << pos << '\n';
 	}
 	else
 		return (serverBlock->root);
@@ -88,17 +94,20 @@ bool Request::parseHttpHeaders()
 	std::size_t colon;
 	std::string key;
 	std::string value;
-	
+
 	std::getline(inputStream, buffer);
 	while (buffer.length() && buffer != "\r\n") // '\r\n' end line
 	{
 		colon = buffer.find_first_of(':');
 		key = buffer.substr(0, colon);
-		value = buffer.substr(colon + 2, buffer.size() - (colon + 2) - 1); // -1 trim \r
+		value = buffer.substr(colon + 2);
+		if ((key == "Content-Length") && (isNumber(value) == false))
+			return false;
+		// std::cout << "value: " << value << '\n';
 		header_map[key] = value;
 		std::getline(inputStream, buffer);
 	}
-	return (true);
+	return true;
 }
 
 bool Request::parseBody()

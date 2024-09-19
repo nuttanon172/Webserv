@@ -8,7 +8,8 @@ struct Location;
 struct ServerConfig;
 class Client;
 
-class Server{
+class Server
+{
 private:
 	int server_fd;
 	int new_socket;
@@ -21,6 +22,7 @@ private:
 	fd_set listen_sockets;
 	std::map<int, ServerConfig> server_config;
 	std::map<int, Client *> client_map;
+
 public:
 	Server(const std::string &pathConfig);
 	Server(const Server &obj);

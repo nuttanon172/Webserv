@@ -34,9 +34,15 @@ bool Client::buildResponse()
 	(void)serverBlock;
 
 	if (req->parseRequestLine() == false)
-		return false;
+	{
+		resp->buildHttpCode(400, socket);
+		return true;
+	}
 	if (req->parseHttpHeaders() == false)
-		return false;
+	{
+		resp->buildHttpCode(400, socket);
+		return true;
+	}
 	if (req->isMultipart() == true)
 		req->parseBody();
 	if (resp->isMethodAllow(req->getMethod(), this->filterLocation()) == false)
