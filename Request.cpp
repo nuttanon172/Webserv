@@ -96,15 +96,15 @@ bool Request::parseHttpHeaders()
 	std::string value;
 
 	std::getline(inputStream, buffer);
-	while (buffer.length() && buffer != "\r\n") // '\r\n' end line
+	while (buffer.length() && buffer != "\r")
 	{
 		colon = buffer.find_first_of(':');
 		key = buffer.substr(0, colon);
-		value = buffer.substr(colon + 2);
+		value = buffer.substr(colon + 2, (buffer.size() - (colon + 2) - 1)); // remove \r
 		if ((key == "Content-Length") && (isNumber(value) == false))
 			return false;
-		// std::cout << "value: " << value << '\n';
 		header_map[key] = value;
+		buffer.clear();
 		std::getline(inputStream, buffer);
 	}
 	return true;
@@ -112,15 +112,29 @@ bool Request::parseHttpHeaders()
 
 bool Request::parseBody()
 {
-	std::string buffer = "";
+	std::string buffer;
+	std::size_t colon;
+	std::string key;
+	std::string value;
+
 	body << inputStream.str();
 	std::getline(inputStream, buffer);
-	if (buffer != boundaryStart)
-		return (false);
-	while (std::getline(inputStream, buffer))
+	std::cout << "buffer: " << buffer << '\n';
+	buffer = buffer.substr(0, buffer.size() - 1);
+	if (buffer == boundaryStart)
 	{
-		if (buffer == boundaryEnd)
-			return (true);
+		while (std::getline(inputStream, buffer))
+		{
+			colon = buffer.find_first_of(':');
+			if (colon == std::string::npos)
+				colon = buffer.find_first_of('=');
+			key = buffer.substr(0, colon);
+			value = buffer.substr(colon + 2, (buffer.size() - (colon + 2) - 1)); // remove \r
+			cgi_map[key] = value;
+			if (buffer == boundaryEnd)
+				return (true);
+			buffer.clear();
+		}
 	}
 	return (false);
 }
@@ -129,13 +143,13 @@ bool Request::isMultipart()
 {
 	if (header_map["Content-Type"].empty())
 		return false;
-	else if (header_map["Content-Type"].substr(0, 28) != "multipart/form-data; boundary")
+	else if (header_map["Content-Type"].substr(0, 29) != "multipart/form-data; boundary")
 		return false;
 	size_t pos = header_map["Content-Type"].find("boundary=");
 	if (pos != std::string::npos)
 	{
-		boundaryStart = header_map["Content-Type"].substr(pos + 9);
-		boundaryEnd = "--" + boundaryEnd + "--";
+		boundaryStart = "--" + header_map["Content-Type"].substr(pos + 9);
+		boundaryEnd = "--" + header_map["Content-Type"].substr(pos + 9) + "--";
 	}
 	return (true);
 }

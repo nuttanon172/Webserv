@@ -231,7 +231,7 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 
 bool Response::searchFile(Request *req, int socket)
 {
-	std::map<std::string, std::map<int, std::string>>::iterator it = serverBlock->location_return_path.begin();
+	std::map<std::string, std::map<int, std::string> >::iterator it = serverBlock->location_return_path.begin();
 	std::string req_path = req->getReqPath();
 
 	for (; it != serverBlock->location_return_path.end(); it++)

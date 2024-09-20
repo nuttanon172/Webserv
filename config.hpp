@@ -29,7 +29,7 @@ struct ServerConfig
     std::vector<std::string> index;
     std::map<int, std::string> error_pages;
     std::vector<Location> locations;
-    std::map<std::string, std::map<int, std::string>> location_return_path;
+    std::map<std::string, std::map<int, std::string> > location_return_path;
 };
 
 bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &servers);

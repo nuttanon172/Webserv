@@ -17,6 +17,7 @@ private:
 	std::string boundaryEnd;
 	ServerConfig *serverBlock;
 	std::map<std::string, std::string> header_map;
+	std::map<std::string, std::string> cgi_map;
 
 public:
 	Request(ServerConfig *serverBlock);
