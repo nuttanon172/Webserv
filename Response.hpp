@@ -34,6 +34,8 @@ public:
 	void readFile(std::string &path, std::string &reqPath, int socket);
 	void redirectPath(Request *req, int code, int socket, std::string path);
 	bool isMethodAllow(std::string &method, std::string path);
+	void serveCGI(std::string cgi_response, int socket);
+
 };
 
 #endif

@@ -148,3 +148,55 @@ bool isNumber(std::string &str)
     }
     return true;
 }
+
+void printProcessingStatus()
+{
+    const char *messages[] = {"CGI processing.", "CGI processing..", "CGI processing..."};
+    const int numMessages = sizeof(messages) / sizeof(messages[0]);
+    int i = 0;
+    std::cout << numMessages << '\n';
+
+    while (1)
+    {
+        std::cout << messages[i];
+        std::cout.flush(); // Ensure the message is printed immediately
+        sleep(1);
+        // Clear the current line
+        std::cout << '\r' << std::string(100, ' ') << '\r';
+        i = (i + 1) % numMessages; // wraps around begin
+    }
+}
+
+std::string List_file(std::string path) {
+    // const char* path = "."; // directory ที่ต้องการ list (ในที่นี้คือ directory ปัจจุบัน)
+
+    // เปิด directory
+    std::stringstream ss;
+    ss << "<!DOCTYPE html>\n<html lang=\"en\">\n<body>\n<div class=\"header\">\n \
+    <h1>File Explorer</h1>\n";
+    DIR* dir = opendir(path.c_str());
+
+    // ตรวจสอบว่า directory ถูกเปิดสำเร็จหรือไม่
+    if (dir == nullptr) {
+        std::cerr << "Error: Could not open directory." << std::endl;
+        return NULL;
+    }
+
+    struct dirent* entry;
+
+    // อ่านเนื้อหาใน directory ทีละไฟล์หรือโฟลเดอร์
+    while ((entry = readdir(dir)) != nullptr) {
+        // พิมพ์ชื่อไฟล์หรือโฟลเดอร์ที่พบ
+        ss << "<li style=\"position: relative; display: flex; justify-content: space-between;\">";
+        ss << "\t\t\n<a href=\"?dir=" << entry->d_name << "\">" << entry->d_name << "</a>\n";
+        ss << "</li>";
+        // std::cout << entry->d_name << std::endl;
+    }
+
+    ss << "</body>";
+    ss << "</html>";
+    // ปิด directory หลังจากใช้งานเสร็จ
+    closedir(dir);
+
+    return 0;
+}

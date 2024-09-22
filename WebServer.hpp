@@ -37,5 +37,7 @@
 #include "Request.hpp"
 #include "Client.hpp"
 #include "util.hpp"
+#include "CGI.hpp"
+#include <dirent.h>
 
 #endif
