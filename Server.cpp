@@ -7,7 +7,7 @@ Server::Server(const std::string &pathConfig)
 		std::cout << "Failed to parse config file" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	printConfig(serverBlock);
+	//printConfig(serverBlock);
 	initServer();
 }
 
@@ -53,11 +53,11 @@ void Server::startServer()
 	FD_ZERO(&current_sockets); // init set
 	FD_ZERO(&ready_sockets);
 	FD_ZERO(&listen_sockets);
-	initSocket();
-	checkClient();
+	if (this->initSocket() == true)
+		this->checkClient();
 }
 
-void Server::initSocket()
+bool Server::initSocket()
 {
 	int enable = 1;
 
@@ -90,7 +90,8 @@ void Server::initSocket()
 				close(server_fd);
 				continue;
 			}
-			identifySocket(*port_it, *serverBlock_it);
+			if (identifySocket(*port_it, *serverBlock_it) == false)
+				return false;
 		}
 	}
 	std::map<int, ServerConfig>::iterator it = server_config.begin();
@@ -100,9 +101,10 @@ void Server::initSocket()
 		std::cout << "Server: " << it->second.server_name << std::endl;
 		std::cout << "Port: " << it->second.listen_ports[0] << std::endl;
 	}
+	return true;
 }
 
-void Server::identifySocket(int port, ServerConfig &serverBlock)
+bool Server::identifySocket(int port, ServerConfig &serverBlock)
 {
 	struct sockaddr_in address;
 
@@ -114,14 +116,16 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
 		perror("bind failed");
+		this->shutdownServer();
 		close(server_fd);
-		return;
+		return false;
 	}
-	if (listen(server_fd, 10) < 0)
+	if (listen(server_fd, BACKLOG) < 0)
 	{
 		perror("Listen ERROR");
+		this->shutdownServer();
 		close(server_fd);
-		return;
+		return false;
 	}
 	FD_SET(server_fd, &listen_sockets); /* add new socket to set */
 	FD_SET(server_fd, &current_sockets);
@@ -132,6 +136,7 @@ void Server::identifySocket(int port, ServerConfig &serverBlock)
 			  << DEFAULT;
 	std::cout << GREEN << "2Max Socket: " << max_socket << '\n'
 			  << DEFAULT;
+	return true;
 }
 
 void Server::checkClient()
@@ -193,7 +198,7 @@ void Server::acceptNewConnection(int listen_sockets)
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
-	printServerConfig(server_config[listen_sockets]);
+	//printServerConfig(server_config[listen_sockets]);
 	// std::vector<std::string>::iterator
 	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;
@@ -227,7 +232,6 @@ bool Server::readRequest(int socket)
 void Server::closeSocket(int socket)
 {
 	int max = 0;
-	// FD_CLR(socket, &ready_sockets);
 	if (FD_ISSET(socket, &current_sockets))
 	{
 		FD_CLR(socket, &current_sockets);
@@ -256,6 +260,7 @@ void Server::shutdownServer()
 			close(i);
 			server_config.erase(i);
 		}
-		closeSocket(i); /* clean client sockets */
+		else
+			closeSocket(i); /* clean client sockets */
 	}
 }

@@ -31,5 +31,7 @@ int main(int ac, char **av)
 	Server *mainServer = new Server(*pathConfig);
 	serverHandler = mainServer;
 	mainServer->startServer();
+	delete pathConfig;
+	delete mainServer;
 	return EXIT_SUCCESS;
 }

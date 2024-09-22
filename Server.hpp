@@ -3,7 +3,7 @@
 
 #include "WebServer.hpp"
 #define BUFFER_SIZE 8192 // 8KB buffer for reading data in chunks
-
+#define BACKLOG 10
 struct Location;
 struct ServerConfig;
 class Client;
@@ -30,8 +30,8 @@ public:
 	~Server();
 	void initServer();
 	void startServer();
-	void initSocket();
-	void identifySocket(int port, ServerConfig &serverBlock);
+	bool initSocket();
+	bool identifySocket(int port, ServerConfig &serverBlock);
 	void checkClient();
 	void acceptNewConnection(int listen_sockets);
 	void closeSocket(int socket);
