@@ -107,6 +107,8 @@ bool Request::parseHttpHeaders()
 		buffer.clear();
 		std::getline(inputStream, buffer);
 	}
+	if (header_map["Host"].empty() == true)
+		return false;
 	return true;
 }
 
