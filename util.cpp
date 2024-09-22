@@ -177,7 +177,7 @@ std::string List_file(std::string path) {
     DIR* dir = opendir(path.c_str());
 
     // ตรวจสอบว่า directory ถูกเปิดสำเร็จหรือไม่
-    if (dir == nullptr) {
+    if (dir == NULL) {
         std::cerr << "Error: Could not open directory." << std::endl;
         return NULL;
     }
@@ -185,7 +185,7 @@ std::string List_file(std::string path) {
     struct dirent* entry;
 
     // อ่านเนื้อหาใน directory ทีละไฟล์หรือโฟลเดอร์
-    while ((entry = readdir(dir)) != nullptr) {
+    while ((entry = readdir(dir)) != NULL) {
         // พิมพ์ชื่อไฟล์หรือโฟลเดอร์ที่พบ
         ss << "<li style=\"position: relative; display: flex; justify-content: space-between;\">";
         ss << "\t\t\n<a href=\"?dir=" << entry->d_name << "\">" << entry->d_name << "</a>\n";
