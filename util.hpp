@@ -10,7 +10,6 @@ std::string getCurrentTime();
 bool isDirectory(const std::string &path);
 std::string filterSlashes(std::string path);
 bool isNumber(std::string &str);
-void printProcessingStatus();
-bool isExists(const std::string &file);
+bool isExists(const std::string &path);
 
 #endif

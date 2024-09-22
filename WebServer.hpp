@@ -33,6 +33,7 @@
 #include <ctime>
 #include "Server.hpp"
 #include "Response.hpp"
+#include <sys/wait.h>
 #include "Request.hpp"
 #include "Client.hpp"
 #include "util.hpp"
