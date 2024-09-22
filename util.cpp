@@ -98,6 +98,12 @@ bool isDirectory(const std::string &path)
         return false; // Path exists, but it's not a directory
 }
 
+bool isExists(const std::string &file) 
+{
+    struct stat buf;
+    return (stat(file.c_str(), &buf) == 0);
+}
+
 std::string filterSlashes(std::string path)
 {
     std::string result;

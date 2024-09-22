@@ -214,16 +214,25 @@ bool Server::readRequest(int socket)
 	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
-		size = recv(socket, buffer, BUFFER_SIZE, 0);
+		size = recv(socket, buffer, sizeof(buffer) - 1, 0);
 		if (size < 0)
-			break;
+		{
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				printf("No data available, will try again...\n");
+				usleep(1000);
+				continue;
+			}
+			else 
+				break ;
+		}
 		else if (!size)
-			break;
+			break ;
 		buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
 		if (client_map[socket])
-			client_map[socket]->getRequest()->writeStream(buffer, size);
+			client_map[socket]->getRequest()->writeStream(buffer, size + 1);
+
 	}
 	std::cout << "-----------------------------------------------------\n";
 	return (true);
