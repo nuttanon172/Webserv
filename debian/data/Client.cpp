@@ -65,9 +65,12 @@ bool Client::buildResponse()
 	if (req->parseRequestLine() == false)
 		return false;
 	if (req->parseHttpHeaders() == false)
+	{
 		return false;
+	}
 	if (req->isMultipart() == true)
 		req->parseBody();
+	std::cout << "i'm here " <<std::endl;
 	if (this->getResponse()->searchFile(this->getRequest(), socket) == true)
 	{
 		if (check_cgi())

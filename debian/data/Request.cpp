@@ -64,9 +64,8 @@ bool Request::parseHttpHeaders()
 	std::size_t colon;
 	std::string key;
 	std::string value;
-	
-	std::getline(inputStream, buffer);
-	while (buffer.length() && buffer != "\r\n") // '\r\n' end line
+	// std::getline(inputStream, buffer);
+	while (std::getline(inputStream, buffer) && buffer.length() && buffer != "\r\n") // '\r\n' end line
 	{
 		colon = buffer.find_first_of(':');
 		key = buffer.substr(0, colon);
@@ -74,32 +73,39 @@ bool Request::parseHttpHeaders()
 		//if (!key.length() || !value.length())
 		//	return (false);
 		header_map[key] = value;
-		std::getline(inputStream, buffer);
+		// std::getline(inputStream, buffer);
 	}
 	return (true);
 }
-
+//may handle the request that havenot the boundary
 bool Request::parseBody()
 {
+	std::cout << "body parseBody" << std::endl;
 	std::string buffer = "";
+	// std::cout << inputStream.str() << std::endl;
 	body << inputStream.str();
+	// std::cout << "body parseBody" << body <<std::endl;
 	std::getline(inputStream, buffer);
 	if (buffer != boundaryStart)
 		return (false);
 	while (std::getline(inputStream, buffer))
 	{
 		if (buffer == boundaryEnd)
+		{
 			return (true);
+		}
 	}
 	return (false);
 }
 
 bool Request::isMultipart()
 {
+	std::cout <<"DEBUG: isMultipath " << header_map["Content-Type"] << std::endl;
 	if (header_map["Content-Type"].empty())
 		return false;
 	else if (header_map["Content-Type"].substr(0, 28) != "multipart/form-data; boundary")
 		return false;
+	std::cout <<"DEBUG: isMultipath" <<std::endl;
 	size_t pos = header_map["Content-Type"].find("boundary=");
 	if (pos != std::string::npos)
 	{

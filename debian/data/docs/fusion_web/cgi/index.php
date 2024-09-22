@@ -1,11 +1,16 @@
 <?php
 // header("HTTP/1.1 200 OK");
 header("Content-Type: text/html");
-header_remove("Content-Type");
-// header_remove("X-Powered-By");
+header_remove("X-Powered-By");
+header_remove("Content-type");
 // phpinfo();
-$defaultDir = './';
-$dir = isset($_GET['dir']) ? urldecode($_GET['dir']) : $defaultDir;
+
+// echo $dir = __DIR__;
+$defaultDir =  __DIR__;;
+$defaultfol = dirname($defaultDir, 1);
+$nowdir = $defaultfol.$_GET['dir'];
+$dir = isset($nowdir) ? $nowdir : $defaultDir;
+// echo $dir;
 $selectedDir = $dir;
 $parentDir = dirname($selectedDir);
 // Function to get directories
@@ -22,6 +27,7 @@ function getDirectories($dir) {
     }
     return $directories;
 }
+
 // Function to list files and directories
 function listFiles($dir) {
     $items = scandir($dir);
@@ -43,10 +49,12 @@ function listFiles($dir) {
     }
     echo '</ul>';
 }
+
 // Handle POST requests for folder creation, file upload, and deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // echo 'hello';
     if (isset($_POST['new_folder']) && $_POST['new_folder'] != '') {
-        $newFolderName = $_POST['folder_name'];
+        $newFolderName = urldecode($_POST['folder_name']);
         if (!empty($newFolderName)) {
             mkdir($selectedDir . '/' . $newFolderName, 0777, true);
         }
@@ -76,7 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		}
 	}
 }
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,6 +174,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <?php
+// echo ini_get('open_basedir');
+
+// echo 'Selected directory: ' . $selectedDir;
+
+// if (is_readable($selectedDir)) {
+//     echo 'Directory is readable.';
+// } else {
+//     echo 'Directory is not readable.';
+// }
+
+// if (file_exists($selectedDir)) {
+//     echo 'Directory exists.';
+// } else {
+//     echo 'Directory does not exist.';
+// }
+
 if (is_dir($selectedDir) && is_readable($selectedDir)) {
     listFiles($selectedDir);
 } else {

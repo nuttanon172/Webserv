@@ -52,10 +52,11 @@ void CGI::set_body(std::string body){
 std::string CGI::init_cgi(Request *clientreq, ServerConfig *serverBlock){
 
 	this->set_requestMethod(clientreq->getMethod());
-	this->set_currentDirectory(clientreq->getPath());
+	this->set_currentDirectory(clientreq->getReqPath());
 	this->set_contentLenght(clientreq->getHeaderMap()["Content-Length"]);
 	this->set_contentType(clientreq->getHeaderMap()["Content-Type"]);
 	this->set_body(clientreq->getBody().str());
+	std::cout << "body from server: " << clientreq->getBody().str() <<std::endl;
 	return (this->cgi());
 }
 
@@ -70,7 +71,8 @@ const std::string &CGI::get_intepeter() const{
 std::string CGI::get_request_method() {
 	if(this->requestMethod == "DELETE")
 		this->env_reqMethod.insert(0, "REQUEST_METHOD=POST");
-	this->env_reqMethod.insert(0, "REQUEST_METHOD="+this->requestMethod);
+	else
+		this->env_reqMethod.insert(0, "REQUEST_METHOD="+this->requestMethod);
 	return(this->env_reqMethod);
 }
 
@@ -84,13 +86,9 @@ void CGI::get_current_directory() {
 		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory + "&" +this->get_body());
 	}
 	else
-<<<<<<< HEAD
     {
 		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory);
     }
-=======
-		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory);
->>>>>>> 4cc5161f3f083c8e5f0dcfff4a93f1b17f661f07
 }
 
 void CGI::get_contentType() {
@@ -119,6 +117,8 @@ void CGI::gen_env(){
 	putenv((char *)this->env_currDirec.c_str());
 	putenv((char *)this->env_script_file.c_str());
 	putenv((char *)this->env_status.c_str());
+	std::cout << this->env_contLenght << "lenght here" <<std::endl;
+	putenv((char *)this->env_reqMethod.c_str());
     // putenv(strdup(this->get_request_method().c_str()));
     // putenv(strdup(this->get_current_directory().c_str()));
     // putenv(strdup(this->get_contentType().c_str()));
@@ -156,7 +156,7 @@ std::string CGI::cgi() {
 	if (pid < 0) {
 		perror("fork");
 	}
-
+	std::cout << "content lenght" << this->contentLenght <<std::endl;
 	if (pid == 0) { // Step 5: Fork a Child Process
 			// Child process
 		dup2(this->pipefd[0], STDIN_FILENO);
@@ -165,11 +165,7 @@ std::string CGI::cgi() {
 		close(this->pipeid[1]); // Close write end of the pipe in child
 		close(this->pipefd[0]);
 		close(this->pipefd[1]);
-<<<<<<< HEAD
 		char* const args[] = {const_cast<char*>(this->get_intepeter().c_str()), NULL};
-=======
-		char* const args[] = {const_cast<char*>(this->get_intepeter().c_str()), nullptr};
->>>>>>> 4cc5161f3f083c8e5f0dcfff4a93f1b17f661f07
 		this->gen_env();
 		// std::cout << environ << std::endl;
 		if (execve(this->get_intepeter().c_str(), args, environ) == -1) {
@@ -181,6 +177,7 @@ std::string CGI::cgi() {
 		close(this->pipefd[0]);
 		if (this->get_request_method() == "REQUEST_METHOD=POST")
 		{
+			std::cout << "body here" << this->get_body() <<std::endl;
 			if(write_in_chunks(this->pipefd[1], this->get_body()))
 			{
 				perror("write");
