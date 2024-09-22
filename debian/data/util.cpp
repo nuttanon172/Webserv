@@ -97,3 +97,37 @@ bool isDirectory(const std::string &path)
     else
         return false; // Path exists, but it's not a directory
 }
+
+std::string List_file(std::string path) {
+    // const char* path = "."; // directory ที่ต้องการ list (ในที่นี้คือ directory ปัจจุบัน)
+
+    // เปิด directory
+    std::stringstream ss;
+    ss << "<!DOCTYPE html>\n<html lang=\"en\">\n<body>\n<div class=\"header\">\n \
+    <h1>File Explorer</h1>\n";
+    DIR* dir = opendir(path.c_str());
+
+    // ตรวจสอบว่า directory ถูกเปิดสำเร็จหรือไม่
+    if (dir == nullptr) {
+        std::cerr << "Error: Could not open directory." << std::endl;
+        return NULL;
+    }
+
+    struct dirent* entry;
+
+    // อ่านเนื้อหาใน directory ทีละไฟล์หรือโฟลเดอร์
+    while ((entry = readdir(dir)) != nullptr) {
+        // พิมพ์ชื่อไฟล์หรือโฟลเดอร์ที่พบ
+        ss << "<li style=\"position: relative; display: flex; justify-content: space-between;\">";
+        ss << "\t\t\n<a href=\"?dir=" << entry->d_name << "\">" << entry->d_name << "</a>\n";
+        ss << "</li>";
+        // std::cout << entry->d_name << std::endl;
+    }
+
+    ss << "</body>";
+    ss << "</html>";
+    // ปิด directory หลังจากใช้งานเสร็จ
+    closedir(dir);
+
+    return 0;
+}

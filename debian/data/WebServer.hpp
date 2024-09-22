@@ -35,6 +35,7 @@
 #include "Client.hpp"
 #include "util.hpp"
 #include "CGI.hpp"
+#include <dirent.h>
 
 std::string ft_itos(int nbr);
 
