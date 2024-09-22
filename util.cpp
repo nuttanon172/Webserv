@@ -98,7 +98,7 @@ bool isDirectory(const std::string &path)
         return false; // Path exists, but it's not a directory
 }
 
-std::string filterSlashes(std::string &path)
+std::string filterSlashes(std::string path)
 {
     std::string result;
     bool lastSlash = false;
@@ -120,4 +120,43 @@ std::string filterSlashes(std::string &path)
         }
     }
     return result;
+}
+
+bool isNumber(std::string &str)
+{
+    if (str.empty())
+    {
+        return false;
+    }
+    std::size_t start = 0;
+    if (str[0] == '+' || str[0] == '-')
+    {
+        return false;
+    }
+    for (std::size_t i = start; i < str.size(); ++i)
+    {
+        if (!std::isdigit(str[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void printProcessingStatus()
+{
+    const char *messages[] = {"CGI processing.", "CGI processing..", "CGI processing..."};
+    const int numMessages = sizeof(messages) / sizeof(messages[0]);
+    int i = 0;
+    std::cout << numMessages << '\n';
+
+    while (1)
+    {
+        std::cout << messages[i];
+        std::cout.flush(); // Ensure the message is printed immediately
+        sleep(1);
+        // Clear the current line
+        std::cout << '\r' << std::string(100, ' ') << '\r';
+        i = (i + 1) % numMessages; // wraps around begin
+    }
 }

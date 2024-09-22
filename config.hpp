@@ -6,19 +6,21 @@
 #include <map>
 
 // Define data structures
-struct Location {
+struct Location
+{
     std::string path;
-    std::map<std::string , bool> allow_methods;//--> maps string {GET , TRUE} post delete
+    std::map<std::string, bool> allow_methods; //--> maps string {GET , TRUE} post delete
     bool autoindex;
     std::vector<std::string> index;
     std::string root;
     int client_max_body_size;
-    std::map<int , std::string> return_path;
+    std::map<int, std::string> return_path;
     std::vector<std::string> cgi_path;
     std::vector<std::string> cgi_ext;
 };
 
-struct ServerConfig {
+struct ServerConfig
+{
     std::vector<int> listen_ports;
     std::string server_name;
     std::string host;
@@ -30,10 +32,9 @@ struct ServerConfig {
     std::map<std::string, std::map<int, std::string> > location_return_path;
 };
 
-bool parseConfigFile(const std::string& filename, std::vector<ServerConfig> &servers);
-bool validateConfig(const ServerConfig& server);
-int stringToInt(const std::string& str);
-void printServerConfig(const ServerConfig& server);
-
+bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &servers);
+bool validateConfig(const ServerConfig &server);
+int stringToInt(const std::string &str);
+void printServerConfig(const ServerConfig &server);
 
 #endif // CONFIG_HPP

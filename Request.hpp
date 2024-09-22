@@ -12,13 +12,17 @@ private:
 	std::string method;
 	std::string path;
 	std::string req_path;
+	std::string protocal;
 	std::string boundaryStart;
 	std::string boundaryEnd;
 	ServerConfig *serverBlock;
 	std::map<std::string, std::string> header_map;
+	std::map<std::string, std::string> cgi_map;
 
 public:
 	Request(ServerConfig *serverBlock);
+	Request(const Request &obj);
+	Request &operator=(const Request &obj);
 	~Request();
 	std::string &getPath();
 	std::string &getMethod();
@@ -33,6 +37,7 @@ public:
 	bool parseHttpHeaders();
 	bool parseBody();
 	bool isMultipart();
+	bool isCorrectHost();
 };
 
 #endif

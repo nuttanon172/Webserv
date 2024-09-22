@@ -18,12 +18,15 @@ private:
 
 public:
 	Client(int socket, ServerConfig *paramBlocks);
+	Client(const Client &obj);
+	Client &operator=(const Client &obj);
 	~Client();
 	Request *getRequest();
 	Response *getResponse();
 	bool buildResponse();
 	void updateTime();
 	time_t getLastTime();
+	std::string filterLocation();
 };
 
 #endif
