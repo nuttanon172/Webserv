@@ -6,6 +6,7 @@
 struct ServerConfig;
 class Request;
 class Response;
+class CGI;
 
 class Client
 {
@@ -15,6 +16,7 @@ private:
 	Request *req;
 	Response *resp;
 	ServerConfig *serverBlock;
+	CGI *cgi;
 
 public:
 	Client(int socket, ServerConfig *paramBlocks);
@@ -27,6 +29,7 @@ public:
 	void updateTime();
 	time_t getLastTime();
 	std::string filterLocation();
+	bool check_cgi();
 };
 
 #endif

@@ -269,3 +269,13 @@ void Response::serveFile(std::string &path, std::string &reqPath, int socket)
 void Response::buildBody()
 {
 }
+
+void Response::serveCGI(std::string cgi_response, int socket)
+{
+	buildStatusLine(200);
+	this->body = cgi_response;
+	buildHeaders();
+	buildHttpMessages();
+	std::cout << "----------------\n" << message.c_str() <<std::endl;
+	send(socket, message.c_str(), message.size(), 0);
+}

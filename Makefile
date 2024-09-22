@@ -16,7 +16,8 @@ SRCS      = main.cpp \
 			Server.cpp \
 			Request.cpp \
 			Response.cpp \
-			Client.cpp
+			Client.cpp	\
+			CGI.cpp
 
 OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
