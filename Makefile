@@ -2,31 +2,33 @@ NAME      = webserv
 
 CXX       = c++
 
-CXXFLAGS  = -Wall -Wextra -Werror -std=c++98
+#CXXFLAGS  = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
+#CXXFLAGS  = -std=c++98 -g -fsanitize=address
+CXXFLAGS  = -std=c++98 -g
 
 OBJ_DIR   = obj
 
-# Update HEADERS to include the single main header file
-HEADERS   = config.hpp util.hpp
+#HEADERS   = iter.hpp
 
-# Add all the necessary .cpp files to SRCS
-SRCS      = main.cpp config.cpp util.cpp
+SRCS      = main.cpp \
+			config.cpp \
+			util.cpp \
+			Server.cpp \
+			Request.cpp \
+			Response.cpp \
+			Client.cpp	\
+			CGI.cpp
 
-# Create object files from the source files
-OBJS      = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
+OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
-# Build the executable
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 
-# Rule for creating object files in the OBJ_DIR directory
 $(OBJ_DIR)/%.o: %.cpp $(HEADERS)
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Standard Makefile rules
 .PHONY: all clean fclean re
-
 all: $(NAME)
 
 clean:

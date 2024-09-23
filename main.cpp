@@ -1,15 +1,37 @@
-#include "config.hpp"
-#include "util.hpp"
-#include <iostream>
+#include "WebServer.hpp"
 
-int main() {
-    if (!parseConfigFile("default.conf")) {
-        std::cout << "Failed to parse config file" << std::endl;
-        return 1;
-    }
+Server *serverHandler;
+std::string *path;
 
-    // Print the parsed configuration for verification
-    printConfig(servers);
+void signalHandler(int signal)
+{
+	(void)signal;
+	serverHandler->shutdownServer();
+	std::cout << RED << "\nWebserver shutting down...\n"
+			  << DEFAULT;
+	delete serverHandler;
+	delete path;
+	exit(EXIT_SUCCESS);
+}
 
-    return 0;
+int main(int ac, char **av)
+{
+	std::string *pathConfig = new std::string;
+
+	path = pathConfig;
+	std::signal(SIGINT, signalHandler);
+	if (ac > 2)
+	{
+		std::cerr << "Run: ./webserv or ./webserv \"config_file\"\n";
+		return EXIT_FAILURE;
+	}
+	av[1] ? *pathConfig = av[1] : *pathConfig = "./default.config";
+	/* Example config */
+	/* Start Server here*/
+	Server *mainServer = new Server(*pathConfig);
+	serverHandler = mainServer;
+	mainServer->startServer();
+	delete pathConfig;
+	delete mainServer;
+	return EXIT_SUCCESS;
 }
