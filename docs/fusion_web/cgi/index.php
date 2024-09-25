@@ -2,8 +2,9 @@
 // header("HTTP/1.1 200 OK");
 $defaultDir =  __DIR__;;
 $file = dirname($defaultDir, 1).$_GET['dir'];
+$file = trim($file);
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && file_exists($file) && $_GET['dir'] != "/cgi" && $_GET['dir'] != "/cgi/")
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && file_exists($file) && !is_dir($file))
 {
     $mimeType = mime_content_type($file);
     header('Content-Description: File Transfer');
@@ -19,18 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && file_exists($file) && $_GET['dir'] !
     exit;
 }
 
-
 header("Content-Type: text/html");
 header_remove("X-Powered-By");
 header_remove("Content-type");
 
-// echo $dir = __DIR__;
-$nowdir = $defaultDir."/upload";
+$dir = rtrim($_GET['dir'], '/');
 
-// $nowdir = dirname($defaultDir, 1).$defaultfol.$_GET['dir'];
-// $nowdir = $defaultfol."/upload";
-$dir = isset($nowdir) ? $nowdir : $defaultDir;
-// echo $file;
+if ($dir === '/cgi') {
+    $file = $file . "/upload";
+}
+$nowdir = $defaultDir."/upload";
+$realPath = realpath($file);
+$dir = isset($realPath) ? $realPath: $nowdir;
 $selectedDir = $dir;
 $parentDir = dirname($selectedDir);
 // Function to get directories
@@ -55,12 +56,15 @@ function listFiles($dir) {
     foreach ($items as $item) {
         if ($item == '.' || $item == '..') continue;
         // $path = $dir . '/' . $item;
-        $path = '/cgi/upload/' . $item;
+        $desiredPath = strstr($dir, '/cgi');
+        $path = $desiredPath . '/'. $item;
+        $real_path_check = $dir. '/' . $item;
+        $real_path_check = trim($real_path_check);
         echo '<li style="position: relative; display: flex; justify-content: space-between;">';
-        if (is_dir($path)) {
-            echo '<a href="?dir=' . urlencode($path) . '">' . htmlspecialchars($item) . '</a>';
+        if (is_dir($real_path_check)) {
+            echo '<a href=' . $path. '>' . htmlspecialchars($item) . '</a>';
         } else {
-            echo '<a href="' . htmlspecialchars($path) . '" download>' . htmlspecialchars($item) . '</a>';
+            echo '<a href=' . $path . ' download>' . htmlspecialchars($item) . '</a>';
         }
         echo '<form id="deleteForm-' . urlencode($path) . '" method="POST" style="margin: 0;">
                 <input type="hidden" name="delete_path" value="' . htmlspecialchars($path) . '">
@@ -83,18 +87,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uploadFile = $selectedDir . '/' . basename($_FILES['upload_file']['name']);
         move_uploaded_file($_FILES['upload_file']['tmp_name'], $uploadFile);
 	} elseif (isset($_GET['delete_path'])){
-		$deletePath = urldecode($_GET['delete_path']);
-		if (file_exists($deletePath)) {
-			if (is_dir($deletePath)) {
+        echo "here\n";
+        $deletePath = urldecode($_GET['delete_path']);
+        $deletePath = trim($deletePath);
+        $fullPath = dirname($defaultDir, 1) . $deletePath; // สร้างพาธเต็ม
+		if (file_exists($fullPath)) {
+			if (is_dir($fullPath)) {
 				// ลบไดเรกทอรี (ต้องเป็นไดเรกทอรีที่ว่างเปล่า)
-				if (rmdir($deletePath)) {
+				if (rmdir($fullPath)) {
 					echo "ลบไดเรกทอรีเรียบร้อย";
 				} else {
 					echo "ไม่สามารถลบไดเรกทอรีได้";
 				}
 			} else {
 				// ลบไฟล์
-				if (unlink($deletePath)) {
+				if (unlink($fullPath)) {
 					echo "ลบไฟล์เรียบร้อย";
 				} else {
 					echo "ไม่สามารถลบไฟล์ได้";
@@ -184,10 +191,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <div id="new-menu" style="display: none;">
-    <!-- <form method="POST" style="margin-bottom: 10px;">
+    <form method="POST" style="margin-bottom: 10px;">
         <input type="text" name="folder_name" placeholder="New folder name" required>
         <button type="submit" name="new_folder" value="true" class="new-button">Create Folder</button>
-    </form> -->
+    </form>
     <form method="POST" enctype="multipart/form-data">
         <input type="file" name="upload_file" required>
         <button type="submit" class="new-button">Upload File</button>
@@ -195,21 +202,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <?php
-// echo ini_get('open_basedir');
-
-// echo 'Selected directory: ' . $selectedDir;
-
-// if (is_readable($selectedDir)) {
-//     echo 'Directory is readable.';
-// } else {
-//     echo 'Directory is not readable.';
-// }
-
-// if (file_exists($selectedDir)) {
-//     echo 'Directory exists.';
-// } else {
-//     echo 'Directory does not exist.';
-// }
 
 if (is_dir($selectedDir) && is_readable($selectedDir)) {
     listFiles($selectedDir);
@@ -240,7 +232,7 @@ document.querySelectorAll('form[id^="deleteForm-"]').forEach(form => {
         .then(data => {
             console.log(data);
             alert('Delete operation successful');
-            location.reload(); // Refresh the page
+            location.href = location.pathname; 
         })
         .catch(error => console.error('Error:', error));
     });

@@ -214,6 +214,8 @@ std::string CGI::cgi() {
 		int status;
 		waitpid(pid, &status, 0);
 		std::cout << std::endl;
+		this->body.str("");
+		this->body.clear();
 		std::string response_body = stream.str();
 		// std::cout << response_body <<std::endl;
 		return response_body;
