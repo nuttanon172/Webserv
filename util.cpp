@@ -98,6 +98,28 @@ bool isDirectory(const std::string &path)
         return false; // Path exists, but it's not a directory
 }
 
+bool isExists(const std::string &path)
+{
+    struct stat info;
+
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else
+        return true;
+}
+
+bool isReadable(const std::string &path)
+{
+    struct stat info;
+
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else if (info.st_mode & S_IRUSR)
+        return true;
+    else
+        return false;
+}
+
 std::string filterSlashes(std::string path)
 {
     std::string result;
