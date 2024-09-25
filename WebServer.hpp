@@ -1,7 +1,7 @@
 #ifndef WEBSERVER_HPP
 #define WEBSERVER_HPP
 
-#define TIME_OUT 5
+#define TIME_OUT 50000
 
 #define DEFAULT "\033[0m"
 #define GREEN "\033[1;32m"
@@ -38,5 +38,6 @@
 #include "util.hpp"
 #include "CGI.hpp"
 #include <dirent.h>
+#include <sys/wait.h>
 
 #endif

@@ -45,8 +45,8 @@ bool Client::buildResponse()
 		resp->buildHttpCode(400, socket);
 		return true;
 	}
-	if (req->isMultipart() == true)
-		req->parseBody();
+	// if (req->isMultipart() == true)
+	// 	req->parseBody();
 	if (resp->isMethodAllow(req->getMethod(), this->filterLocation()) == false)
 	{
 		resp->buildHttpCode(405, socket);
@@ -55,7 +55,11 @@ bool Client::buildResponse()
 	if (this->getResponse()->searchFile(this->getRequest(), socket) == true)
 	{
 		if (check_cgi())
-			this->getResponse()->serveCGI(this->cgi->init_cgi(this->getRequest(), this->serverBlock), socket);
+		{
+			// std::cout << "hello world and hell" << this->getRequest()->inputStream << std::endl;
+			req->parseBody();
+			this->getResponse()->serveCGI(this->cgi->init_cgi(req), socket);
+		}
 		else
 			this->getResponse()->serveFile(getRequest()->getPath(), getRequest()->getReqPath(), socket);
 	}

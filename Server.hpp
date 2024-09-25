@@ -2,7 +2,7 @@
 #define SERVER_HPP
 
 #include "WebServer.hpp"
-#define BUFFER_SIZE 8192 // 8KB buffer for reading data in chunks
+#define BUFFER_SIZE 100000 // 8KB buffer for reading data in chunks
 #define BACKLOG 10
 struct Location;
 struct ServerConfig;
