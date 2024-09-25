@@ -151,6 +151,7 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 	std::vector<std::string>::iterator it_location_index;
 	std::ifstream inputFile;
 	std::string indexPath, tmp_path, location_path, line;
+	std::string tmpIndex = "";
 	std::stringstream ss;
 	bool location_index = true;
 	bool server_index = true;
@@ -166,9 +167,25 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 	if (location_index == true)
 		it_location_index = it_location->index.begin();
 
+	std::cout << "\tpath: " << path << " " << path[path.size() - 1] << '\n';
 	// check if it directory search for index inside else search for index
+	if (path[path.size() - 1] != '/' && isReadable(path) == false)
+	{
+		this->buildErrorBody(403);
+		return;
+	}
 	if (isDirectory(path) == true || access(path.c_str(), R_OK) != 0)
 	{
+		if (path[path.size() - 1] != '/' && isExists(path) == false)
+		{
+			tmp_path = filterSlashes(serverBlock->root + "/" + serverBlock->error_pages[404]);
+			std::cout << "tmp_path: " << tmp_path << '\n';
+			if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
+			{
+				this->buildErrorBody(404);
+				return;
+			}
+		}
 		tmp_path = reqPath.substr(0, reqPath.find_last_of('/'));
 		std::cout << "tmp_path: " << tmp_path << '\n';
 		// search index of location
@@ -188,12 +205,21 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 						indexPath = filterSlashes(indexPath);
 						// std::cout << "Location FileName: " << *it_location_index << '\n';
 						// std::cout << "Location FilePath: " << indexPath << '\n';
-						if (access(indexPath.c_str(), R_OK) == 0)
+						if (isExists(indexPath))
 						{
-							path = indexPath;
-							this->readFile(path, reqPath, socket);
-							return;
+							if (access(indexPath.c_str(), R_OK) != 0 && tmpIndex.empty() == true)
+								tmpIndex = indexPath;
+							else
+							{
+								this->readFile(indexPath, reqPath, socket);
+								return;
+							}
 						}
+					}
+					if (tmpIndex.empty() != false)
+					{
+						this->readFile(indexPath, reqPath, socket);
+						return;
 					}
 				}
 			}
@@ -208,18 +234,23 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 				indexPath = filterSlashes(indexPath);
 				std::cout << "Server FileName: " << *it_server_index << '\n';
 				std::cout << "Server FilePath: " << indexPath << '\n';
-				if (access(indexPath.c_str(), R_OK) == 0)
+				if (isExists(indexPath))
 				{
-					path = indexPath;
-					this->readFile(path, reqPath, socket);
-					return;
+					if (access(indexPath.c_str(), R_OK) != 0 && tmpIndex.empty() == true)
+						tmpIndex = indexPath;
+					else
+					{
+						this->readFile(indexPath, reqPath, socket);
+						return;
+					}
 				}
 			}
+			if (tmpIndex.empty() != false)
+			{
+				this->readFile(indexPath, reqPath, socket);
+				return;
+			}
 		}
-		tmp_path = filterSlashes(serverBlock->root + "/" + serverBlock->error_pages[404]);
-		std::cout << "tmp_path: " << tmp_path << '\n';
-		if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
-			this->buildHttpCode(404, socket);
 		else
 			inputFile.open(tmp_path.c_str());
 	}
@@ -235,9 +266,12 @@ bool Response::searchFile(Request *req, int socket)
 	std::map<std::string, std::map<int, std::string> >::iterator it = serverBlock->location_return_path.begin();
 	std::string req_path = req->getReqPath();
 
+	std::cout << "\t\treq_path: " << req_path << '\n';
+	if (req_path[req_path.size() - 1] != '/')
+		return true;
 	for (; it != serverBlock->location_return_path.end(); it++)
 	{
-		if (req_path == it->first)
+		if (it->first == req_path || it->first + "/" == req_path)
 		{
 			std::map<int, std::string>::iterator it_return = it->second.begin();
 			this->redirectPath(req, it_return->first, socket, it_return->second);
@@ -276,6 +310,7 @@ void Response::serveCGI(std::string cgi_response, int socket)
 	this->body = cgi_response;
 	buildHeaders();
 	buildHttpMessages();
-	std::cout << "----------------\n" << message.c_str() <<std::endl;
+	std::cout << "----------------\n"
+			  << message.c_str() << std::endl;
 	send(socket, message.c_str(), message.size(), 0);
 }

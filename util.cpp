@@ -98,6 +98,28 @@ bool isDirectory(const std::string &path)
         return false; // Path exists, but it's not a directory
 }
 
+bool isExists(const std::string &path)
+{
+    struct stat info;
+
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else
+        return true;
+}
+
+bool isReadable(const std::string &path)
+{
+    struct stat info;
+
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else if (info.st_mode & S_IRUSR)
+        return true;
+    else
+        return false;
+}
+
 std::string filterSlashes(std::string path)
 {
     std::string result;
@@ -171,7 +193,7 @@ std::string List_file(std::string path) {
     DIR* dir = opendir(path.c_str());
 
     // ตรวจสอบว่า directory ถูกเปิดสำเร็จหรือไม่
-    if (dir == nullptr) {
+    if (dir == NULL) {
         std::cerr << "Error: Could not open directory." << std::endl;
         return NULL;
     }
@@ -179,7 +201,7 @@ std::string List_file(std::string path) {
     struct dirent* entry;
 
     // อ่านเนื้อหาใน directory ทีละไฟล์หรือโฟลเดอร์
-    while ((entry = readdir(dir)) != nullptr) {
+    while ((entry = readdir(dir)) != NULL) {
         // พิมพ์ชื่อไฟล์หรือโฟลเดอร์ที่พบ
         ss << "<li style=\"position: relative; display: flex; justify-content: space-between;\">";
         ss << "\t\t\n<a href=\"?dir=" << entry->d_name << "\">" << entry->d_name << "</a>\n";

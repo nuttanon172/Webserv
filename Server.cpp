@@ -7,7 +7,7 @@ Server::Server(const std::string &pathConfig)
 		std::cout << "Failed to parse config file" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	//printConfig(serverBlock);
+	// printConfig(serverBlock);
 	initServer();
 }
 
@@ -146,8 +146,7 @@ void Server::checkClient()
 	std::cout << "Webserver is running...\n";
 	while (1)
 	{
-		memcpy(&ready_sockets, &current_sockets, sizeof(current_sockets)); /* because select is destructive */
-		// ready_sockets = current_sockets;
+		ready_sockets = current_sockets;
 		status = select(max_socket + 1, &ready_sockets, NULL, NULL, NULL);
 		if (status < 0)
 		{
@@ -162,22 +161,40 @@ void Server::checkClient()
 					this->acceptNewConnection(socket);
 				else
 				{
-					client_map[socket]->updateTime();
-					readRequest(socket);
-					if (client_map[socket]->buildResponse() == true)
+					pid_t pid = fork();
+
+					if (pid < 0)
+					{
+						perror("Fork failed");
 						closeSocket(socket);
-					/* Display socket value */
-					std::cout << YELLOW << "Webserver waiting for client....\n"
-							  << DEFAULT;
+					}
+					else if (pid == 0)
+					{
+						client_map[socket]->updateTime();
+						if (readRequest(socket) == false)
+						{
+							client_map[socket]->getResponse()->buildStatusLine(400);
+							std::cout << YELLOW << "Webserver waiting for client....\n"
+									  << DEFAULT;
+							closeSocket(socket);
+							exit(0);
+						}
+						if (client_map[socket]->buildResponse() == true)
+							closeSocket(socket);
+						std::cout << YELLOW << "Webserver waiting for client....\n"
+								  << DEFAULT;
+						exit(0);
+					}
+					else
+					{
+						//process_map.insert(std::make_pair(pid, time(NULL)));
+						std::cout << YELLOW << "Webserver waiting for client....\n"
+								  << DEFAULT;
+						closeSocket(socket);
+						waitpid(-1, NULL, WNOHANG);
+					}
 				}
 			}
-		}
-		/* Check time each socket */
-		std::map<int, Client *>::iterator it = client_map.begin();
-		for (; it != client_map.end(); it++)
-		{
-			if (time(NULL) - it->second->getLastTime() > TIME_OUT)
-				closeSocket(it->first);
 		}
 	}
 }
@@ -198,8 +215,7 @@ void Server::acceptNewConnection(int listen_sockets)
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
-	//printServerConfig(server_config[listen_sockets]);
-	// std::vector<std::string>::iterator
+	// printServerConfig(server_config[listen_sockets]);
 	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;
 	std::cout << GREEN << "Max Socket: " << max_socket << '\n'
@@ -210,7 +226,9 @@ bool Server::readRequest(int socket)
 {
 	char buffer[10000];
 	int size;
+	time_t start_time;
 
+	start_time = time(NULL);
 	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
@@ -224,6 +242,9 @@ bool Server::readRequest(int socket)
 		std::cout << buffer << '\n';
 		if (client_map[socket])
 			client_map[socket]->getRequest()->writeStream(buffer, size);
+		/* Check time each socket */
+		if (time(NULL) - start_time > TIME_OUT)
+			return false;
 	}
 	std::cout << "-----------------------------------------------------\n";
 	return (true);
