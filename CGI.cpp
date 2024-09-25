@@ -12,6 +12,7 @@
 extern char **environ;
 
 CGI::CGI(){
+
 }
 
 CGI::CGI(std::string interpeter, std::string script_file){
@@ -45,18 +46,29 @@ void CGI::set_contentLenght(std::string contentLenght){
 void CGI::set_contentType(std::string contentType){
 	this->contentType = contentType;
 }
-void CGI::set_body(std::string body){
-	this->body = body;
+void CGI::set_body(std::stringstream &body){
+	std::stringstream ss;
+	std::string tester;
+	// ss << body.rdbuf();
+	this->body << body.rdbuf();
+	// std::cout << "----------------tester body--------------" <<std::endl;
+	// while (getline(ss, tester))
+	// {
+	// 	std::cout << tester <<std::endl;
+	// }
+
 }
 
-std::string CGI::init_cgi(Request *clientreq, ServerConfig *serverBlock){
+std::string CGI::init_cgi(Request *clientreq){
 
+	// clientreq->parseBody();
 	this->set_requestMethod(clientreq->getMethod());
 	this->set_currentDirectory(clientreq->getReqPath());
 	this->set_contentLenght(clientreq->getHeaderMap()["Content-Length"]);
 	this->set_contentType(clientreq->getHeaderMap()["Content-Type"]);
-	this->set_body(clientreq->getBody().str());
-	std::cout << "body from server: " << clientreq->getBody().str() <<std::endl;
+	this->set_body(clientreq->getBody());
+	// std::cout << "body from server::settocgi " << this->body.str() <<std::endl;
+	// std::cout << "body from server: " << clientreq->getBody().str() <<std::endl;
 	return (this->cgi());
 }
 
@@ -76,14 +88,14 @@ std::string CGI::get_request_method() {
 	return(this->env_reqMethod);
 }
 
-const std::string &CGI::get_body() const{
-	return(this->body);
-}
+// const std::stringstream &CGI::get_body() const{
+// 	return(this->body);
+// }
 
 void CGI::get_current_directory() {
 	if(this->requestMethod == "DELETE")
 	{
-		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory + "&" +this->get_body());
+		this->env_currDirec.insert(0, "QUERY_STRING=dir=" + this->directory + "&" +this->body.str());
 	}
 	else
     {
@@ -117,7 +129,7 @@ void CGI::gen_env(){
 	putenv((char *)this->env_currDirec.c_str());
 	putenv((char *)this->env_script_file.c_str());
 	putenv((char *)this->env_status.c_str());
-	std::cout << this->env_contLenght << "lenght here" <<std::endl;
+	// std::cout << this->env_contLenght << "lenght here" <<std::endl;
 	putenv((char *)this->env_reqMethod.c_str());
     // putenv(strdup(this->get_request_method().c_str()));
     // putenv(strdup(this->get_current_directory().c_str()));
@@ -127,21 +139,28 @@ void CGI::gen_env(){
     // envp[6] = nullptr;  // จบด้วย nullptr
 }
 
-int write_in_chunks(int fd, const std::string& data) {
-    size_t total_size = data.size();
-    size_t offset = 0;
+int CGI::write_in_chunks(int fd) {
+	std::string chunk;
+	// std::stringstream ss;
+	// ss << this->body.rdbuf();
+	while (std::getline(this->body, chunk))
+	{
+		chunk.append("\n");
+    	size_t total_size = chunk.size();
+    	size_t offset = 0;
+		std::cout << "---------------total size----------------\nchunk: \n" << chunk << std::endl;
+		while (offset < total_size) {
+			size_t chunk_size = CHUNK_SIZE < total_size - offset ? CHUNK_SIZE: total_size - offset;
+			size_t bytes_written = write(fd, chunk.c_str() + offset, chunk_size);
 
-    while (offset < total_size) {
-        size_t chunk_size = CHUNK_SIZE < total_size - offset ? CHUNK_SIZE: total_size - offset;
-        ssize_t bytes_written = write(fd, data.c_str() + offset, chunk_size);
-
-        if (bytes_written != chunk_size) {
-            perror("write");
-            return 1; // Return an error code
-        }
-
-        offset += bytes_written;
-    }
+			if (bytes_written != chunk_size) {
+				perror("write");
+				return 1; // Return an error code
+			}
+			offset += bytes_written;
+		}
+		chunk.clear();
+	}
     return 0; // Success
 }
 
@@ -177,8 +196,8 @@ std::string CGI::cgi() {
 		close(this->pipefd[0]);
 		if (this->get_request_method() == "REQUEST_METHOD=POST")
 		{
-			std::cout << "body here" << this->get_body() <<std::endl;
-			if(write_in_chunks(this->pipefd[1], this->get_body()))
+			std::cout << "body here" << this->body.str() <<std::endl;
+			if(write_in_chunks(this->pipefd[1]))
 			{
 				perror("write");
 				return "Cannot write in chuck";

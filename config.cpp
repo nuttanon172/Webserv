@@ -242,7 +242,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
 
                     int parsed_port = stringToInt(port_str);
 
-                    if (!isValidrange(parsed_port, 8000, 9000))
+                    if (!isValidrange(parsed_port, 8000, 10000))
                     {
                         std::cerr << "Error: Port '" << parsed_port << "' is out of valid range (8000-9000)." << std::endl;
                         return false;

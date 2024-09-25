@@ -308,7 +308,9 @@ void Response::serveCGI(std::string cgi_response, int socket)
 {
 	buildStatusLine(200);
 	this->body = cgi_response;
-	buildHeaders();
+	if (this->body.size() < 34 || this->body.substr(0, 34) != "Content-Description: File Transfer")
+		buildHeaders();
+	// buildHeaders();
 	buildHttpMessages();
 	std::cout << "----------------\n"
 			  << message.c_str() << std::endl;

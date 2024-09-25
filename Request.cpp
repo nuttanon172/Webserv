@@ -118,26 +118,28 @@ bool Request::parseBody()
 	std::size_t colon;
 	std::string key;
 	std::string value;
+	std::stringstream ss;
 
-	body << inputStream.str();
+	// ss << inputStream.rdbuf();
+	// std::cout << "parsebody:inputStream::" << ss.str() << std::endl;
 	std::getline(inputStream, buffer);
-	std::cout << "buffer: " << buffer << '\n';
+	body << buffer << "\n";
 	buffer = buffer.substr(0, buffer.size() - 1);
-	if (buffer == boundaryStart)
+	// std::cout << "parsebody:buffer::" << body.str() << std::endl;
+	while (std::getline(inputStream, buffer))
 	{
-		while (std::getline(inputStream, buffer))
-		{
-			colon = buffer.find_first_of(':');
-			if (colon == std::string::npos)
-				colon = buffer.find_first_of('=');
-			key = buffer.substr(0, colon);
-			value = buffer.substr(colon + 2, (buffer.size() - (colon + 2) - 1)); // remove \r
-			cgi_map[key] = value;
-			if (buffer == boundaryEnd)
-				return (true);
-			buffer.clear();
-		}
+		body << buffer << "\n";
+		// colon = buffer.find_first_of(':');
+		// if (colon == std::string::npos)
+		// 	colon = buffer.find_first_of('=');
+		// key = buffer.substr(0, colon);
+		// value = buffer.substr(colon + 2, (buffer.size() - (colon + 2) - 1)); // remove \r
+		// cgi_map[key] = value;
+		// if (buffer == boundaryEnd)
+		// 	return (true);
+		buffer.clear();
 	}
+	std::cout << "parsebody: \n" << body.str() << std::endl;
 	return (false);
 }
 
@@ -157,7 +159,7 @@ bool Request::isMultipart()
 }
 
 std::string &Request::getPath()
-{
+{ 
 	return path;
 }
 

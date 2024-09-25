@@ -224,7 +224,7 @@ void Server::acceptNewConnection(int listen_sockets)
 
 bool Server::readRequest(int socket)
 {
-	char buffer[10000];
+	char buffer[100000];
 	int size;
 	time_t start_time;
 
@@ -232,11 +232,14 @@ bool Server::readRequest(int socket)
 	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
-		size = recv(socket, buffer, BUFFER_SIZE, 0);
+		usleep(100000);
+		size = recv(socket, buffer, BUFFER_SIZE - 1, 0);
 		if (size < 0)
 			break;
 		else if (!size)
 			break;
+		if (size > BUFFER_SIZE)
+			size = BUFFER_SIZE - 1;
 		buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
