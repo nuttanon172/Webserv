@@ -209,6 +209,7 @@ int stringToInt(const std::string &str)
     return num;
 }
 
+
 bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &servers)
 {
     std::ifstream config_file(filename.c_str());
@@ -588,6 +589,8 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
     config_file.close();
     return true;
 }
+
+
 
 void printServerConfig(const ServerConfig &server)
 {

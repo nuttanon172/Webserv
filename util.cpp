@@ -8,6 +8,15 @@ std::string ft_itos(int nbr)
     return out.str();
 }
 
+size_t ft_stost(std::string nbr)
+{
+    std::stringstream ss(nbr);
+    size_t value;
+
+    ss >> value;
+    return value;
+}
+
 void printConfig(const std::vector<ServerConfig> &servers)
 {
     for (size_t i = 0; i < servers.size(); ++i)
