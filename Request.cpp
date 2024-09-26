@@ -115,7 +115,6 @@ bool Request::parseHttpHeaders()
 bool Request::parseBody()
 {
 	std::string buffer;
-	std::size_t colon;
 	std::string key;
 	std::string value;
 	std::stringstream ss;

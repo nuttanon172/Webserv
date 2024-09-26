@@ -128,7 +128,6 @@ bool checkBracesOnSeparateLine(const std::string& filename) {
     }
 
     std::string line;
-    bool inServerBlock = false;  // Track if inside a server block
     int lineNum = 0;             // To track line numbers for error reporting
 
     while (std::getline(configFile, line)) {

@@ -40,6 +40,7 @@ Server::~Server()
 	std::map<int, Client *>::iterator it = client_map.begin();
 	for (; it != client_map.end(); it++)
 		delete it->second;
+	waitpid(-1, NULL, WNOHANG);
 	this->shutdownServer();
 }
 
