@@ -82,13 +82,7 @@ std::string Request::makePath(std::string &dest)
 		return (serverBlock->root);
 }
 
-void Request::setPath(std::string &newPath)
-{
-	path = makePath(newPath);
-	std::cout << "new path = " << path << '\n';
-}
-
-bool Request::parseHttpHeaders()
+bool Request::parseHttpHeaders(std::string &serverName)
 {
 	std::string buffer = "";
 	std::size_t colon;
@@ -107,7 +101,7 @@ bool Request::parseHttpHeaders()
 		buffer.clear();
 		std::getline(inputStream, buffer);
 	}
-	if (header_map["Host"].empty() == true)
+	if (header_map["Host"].empty() == true || header_map["Host"] != serverName)
 		return false;
 	return true;
 }

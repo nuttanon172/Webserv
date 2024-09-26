@@ -133,6 +133,7 @@ bool Server::identifySocket(int port, ServerConfig &serverBlock)
 	if (server_fd > max_socket)
 		max_socket = server_fd;
 	server_config.insert(std::make_pair(server_fd, serverBlock));
+	server_name.insert(std::make_pair(server_fd, serverBlock.server_name + ":" + ft_itos(port)));
 	std::cout << GREEN << "1Create socket[" << server_fd << "]\n"
 			  << DEFAULT;
 	std::cout << GREEN << "2Max Socket: " << max_socket << '\n'
@@ -216,6 +217,7 @@ void Server::acceptNewConnection(int listen_sockets)
 	FD_SET(new_socket, &current_sockets); // Accept New Connection from client
 	if (new_socket > max_socket)
 		max_socket = new_socket;
+	client_map[new_socket]->setServerName(server_name[listen_sockets]);
 	// printServerConfig(server_config[listen_sockets]);
 	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
 			  << DEFAULT;

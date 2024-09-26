@@ -40,7 +40,7 @@ bool Client::buildResponse()
 		resp->buildHttpCode(400, socket);
 		return true;
 	}
-	if (req->parseHttpHeaders() == false)
+	if (req->parseHttpHeaders(serverName) == false)
 	{
 		resp->buildHttpCode(400, socket);
 		return true;
@@ -127,4 +127,9 @@ bool Client::check_cgi()
         }
 	}
 	return false;
+}
+
+void Client::setServerName(std::string serverName)
+{
+	this->serverName = serverName;
 }
