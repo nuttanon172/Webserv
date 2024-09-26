@@ -458,6 +458,23 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                     }
                 }
             }
+       
+                else if (key == "autoindex")
+{
+    std::string value;
+    iss >> value;
+
+    if (value == "on")
+    {
+        current_location.autoindex = true;
+    }
+    else if (value == "off")
+    {
+        current_location.autoindex = false;
+    }
+}
+
+        
             else if (key == "cgi_path")
             {
                 std::string path;
@@ -713,15 +730,15 @@ bool validateConfig(const ServerConfig &server)
         return false;
     }
 
-    for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it)
-    {
-        std::string full_path = "./" + server.root + it->path;
-        if (!directoryExists(full_path))
-        {
-            std::cerr << "Error: Location root \"" << full_path << "\" does not exist\n";
-            return false;
-        }
-    }
+// \\   for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it)
+// \\   {
+// \\       std::string full_path = "./" + server.root + it->path;
+// \\       if (!directoryExists(full_path))
+// \\       {
+// \\           std::cerr << "Error: Location root \"" << full_path << "\" does not exist\n";
+// \\           return false;
+// \\       }
+// \\   }
 
     return true;
 }
