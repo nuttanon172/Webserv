@@ -164,6 +164,7 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 		it_location_index = it_location->index.begin();
 
 	std::cout << "\tpath: " << path << " " << path[path.size() - 1] << '\n';
+	//std::cout << "\treqPath" << reqPath << '\n';
 	// check if it directory search for index inside else search for index
 	if (path[path.size() - 1] != '/' && isDirectory(path) == true)
 	{
@@ -196,9 +197,7 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 				return true;
 			}
 		}
-		//tmp_path = reqPath.substr(0, reqPath.find_last_of('/'));
 		tmp_path = filterSlashes("/" + reqPath);
-		//std::cout << "tmp_path: " << tmp_path << '\n';
 		// search index of location
 		if (location_index == true)
 		{
@@ -252,13 +251,30 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 				}
 			}
 		}
-		if (tmpIndex.empty() != false)
+		if (tmpIndex.empty() != true)
 		{
-			this->readFile(indexPath, reqPath, socket);
+			this->readFile(tmpIndex, reqPath, socket);
 			return true;
 		}
 		else
-			inputFile.open(tmp_path.c_str());
+		{
+			std::cout << "else path: " << path << '\n';
+			std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+			for (;it_location != serverBlock->locations.end(); it_location++)
+			{
+				std::cout << "reqPath: " << reqPath << '\n';
+				std::cout << "it_location->path: " << it_location->path << '\n';
+				if (reqPath == it_location->path || reqPath == it_location->path + "/")
+				{
+					if (it_location->autoindex == true)
+					{
+						body = List_file(path);
+						std::cout << body << '\n';
+						return true;
+					}
+				}
+			}
+		}
 	}
 	else
 	{
@@ -306,10 +322,6 @@ void Response::serveFile(std::string &path, std::string &reqPath, int socket)
 	buildHttpMessages();
 	std::cout << "serveFile called\n";
 	send(socket, message.c_str(), message.size(), 0);
-}
-
-void Response::buildBody()
-{
 }
 
 void Response::serveCGI(std::string cgi_response, int socket)
