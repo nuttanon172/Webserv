@@ -148,7 +148,7 @@ int CGI::write_in_chunks(int fd) {
 		chunk.append("\n");
     	size_t total_size = chunk.size();
     	size_t offset = 0;
-		std::cout << "---------------total size----------------\nchunk: \n" << chunk << std::endl;
+		// std::cout << "---------------total size----------------\nchunk: \n" << chunk << std::endl;
 		while (offset < total_size) {
 			size_t chunk_size = CHUNK_SIZE < total_size - offset ? CHUNK_SIZE: total_size - offset;
 			size_t bytes_written = write(fd, chunk.c_str() + offset, chunk_size);

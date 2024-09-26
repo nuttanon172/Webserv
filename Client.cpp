@@ -54,7 +54,10 @@ bool Client::buildResponse()
 	{
 		if (check_cgi())
 		{
-			req->parseBody();
+			if (!req->parseBody()){
+				resp->buildHttpCode(400, socket);
+				return (true);
+			}
 			this->getResponse()->serveCGI(this->cgi->init_cgi(req), socket);
 		}
 		else

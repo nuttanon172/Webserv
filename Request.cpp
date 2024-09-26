@@ -119,15 +119,23 @@ bool Request::parseBody()
 	std::string key;
 	std::string value;
 	std::stringstream ss;
+	int count_loop;
+	size_t i;
 
+	i = 0;
+	count_loop = 0;
 	// ss << inputStream.rdbuf();
 	// std::cout << "parsebody:inputStream::" << ss.str() << std::endl;
-	std::getline(inputStream, buffer);
-	body << buffer << "\n";
-	buffer = buffer.substr(0, buffer.size() - 1);
+	// std::getline(inputStream, buffer);
+	// i += (buffer.length() + 1);
+	// body << buffer << "\n";
+	// buffer = buffer.substr(0, buffer.size() - 1);
 	// std::cout << "parsebody:buffer::" << body.str() << std::endl;
+	// buffer.clear();
 	while (std::getline(inputStream, buffer))
 	{
+		count_loop++;
+		i += (buffer.length() + 1);
 		body << buffer << "\n";
 		// colon = buffer.find_first_of(':');
 		// if (colon == std::string::npos)
@@ -139,7 +147,12 @@ bool Request::parseBody()
 		// 	return (true);
 		buffer.clear();
 	}
-	std::cout << "parsebody: \n" << body.str() << std::endl;
+	if (count_loop == 1)
+		i--;
+	// std::cout << "parsebody: \n" << body.str() << std::endl;
+	std::cout << "content-Lenght: " << i <<std::endl;
+	if (ft_stost(header_map["Content-Length"]) == i)
+		return (true);
 	return (false);
 }
 
