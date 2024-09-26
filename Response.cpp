@@ -65,15 +65,10 @@ void Response::buildHeadersRedirect(std::string host, std::string &path)
 {
 	std::stringstream ss;
 
-	if (host[0] != '/')
-		host = "/" + host;
+	host = "http://" + filterSlashes(host + "/" + path + "/");
 	if (serverBlock->server_name.empty() != true)
-	{
 		ss << "Server: " << serverBlock->server_name << "\r\n";
-		ss << "Location: " << "http://" << host << path << "\r\n";
-	}
-	else
-		ss << "Location: " << "http://" << host << path << "\r\n";
+	ss << "Location: " << host << "\r\n";
 	ss << "Date: " + getCurrentTime() + "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
@@ -124,7 +119,6 @@ void Response::buildHttpCode(int code, int socket)
 
 bool Response::isMethodAllow(std::string &method, std::string path)
 {
-	std::cout << "\tpath_allow: " << path << '\n';
 	if (serverBlock->locations.empty() != true)
 	{
 		std::vector<Location>::iterator it_location = serverBlock->locations.begin();
@@ -151,6 +145,7 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 	std::vector<std::string>::iterator it_location_index;
 	std::ifstream inputFile;
 	std::string indexPath, tmp_path, location_path, line;
+	std::string tmpIndex = "";
 	std::stringstream ss;
 	bool location_index = true;
 	bool server_index = true;
@@ -166,9 +161,36 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 	if (location_index == true)
 		it_location_index = it_location->index.begin();
 
+	std::cout << "\tpath: " << path << " " << path[path.size() - 1] << '\n';
 	// check if it directory search for index inside else search for index
+	if (path[path.size() - 1] != '/' && isDirectory(path) == true)
+	{
+		path = path + "/";
+		this->readFile(path, reqPath, socket);
+		return ;
+	}
+	if (path[path.size() - 1] != '/' && isReadable(path) == false && isExists(path) == true)
+	{
+		this->buildErrorBody(403);
+		return;
+	}
 	if (isDirectory(path) == true || access(path.c_str(), R_OK) != 0)
 	{
+		if (path[path.size() - 1] != '/' && isExists(path) == false)
+		{
+			tmp_path = filterSlashes(serverBlock->root + "/" + serverBlock->error_pages[404]);
+			std::cout << "tmp_path: " << tmp_path << '\n';
+			if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
+			{
+				this->buildErrorBody(404);
+				return ;
+			}
+			else
+			{
+				this->readFile(tmp_path, reqPath, socket);
+				return ;
+			}
+		}
 		tmp_path = reqPath.substr(0, reqPath.find_last_of('/'));
 		std::cout << "tmp_path: " << tmp_path << '\n';
 		// search index of location
@@ -188,12 +210,21 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 						indexPath = filterSlashes(indexPath);
 						// std::cout << "Location FileName: " << *it_location_index << '\n';
 						// std::cout << "Location FilePath: " << indexPath << '\n';
-						if (access(indexPath.c_str(), R_OK) == 0)
+						if (isExists(indexPath))
 						{
-							path = indexPath;
-							this->readFile(path, reqPath, socket);
-							return;
+							if (access(indexPath.c_str(), R_OK) != 0 && tmpIndex.empty() == true)
+								tmpIndex = indexPath;
+							else
+							{
+								this->readFile(indexPath, reqPath, socket);
+								return;
+							}
 						}
+					}
+					if (tmpIndex.empty() != false)
+					{
+						this->readFile(indexPath, reqPath, socket);
+						return;
 					}
 				}
 			}
@@ -208,23 +239,31 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 				indexPath = filterSlashes(indexPath);
 				std::cout << "Server FileName: " << *it_server_index << '\n';
 				std::cout << "Server FilePath: " << indexPath << '\n';
-				if (access(indexPath.c_str(), R_OK) == 0)
+				if (isExists(indexPath))
 				{
-					path = indexPath;
-					this->readFile(path, reqPath, socket);
-					return;
+					if (access(indexPath.c_str(), R_OK) != 0 && tmpIndex.empty() == true)
+						tmpIndex = indexPath;
+					else
+					{
+						this->readFile(indexPath, reqPath, socket);
+						return;
+					}
 				}
 			}
+			if (tmpIndex.empty() != false)
+			{
+				this->readFile(indexPath, reqPath, socket);
+				return;
+			}
 		}
-		tmp_path = filterSlashes(serverBlock->root + "/" + serverBlock->error_pages[404]);
-		std::cout << "tmp_path: " << tmp_path << '\n';
-		if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
-			this->buildHttpCode(404, socket);
 		else
 			inputFile.open(tmp_path.c_str());
 	}
 	else
+	{
 		inputFile.open(path.c_str());
+		std::cout << "open file " << path << '\n';
+	}
 	while (std::getline(inputFile, line))
 		ss << line << "\r\n";
 	body = ss.str();
@@ -237,7 +276,7 @@ bool Response::searchFile(Request *req, int socket)
 
 	for (; it != serverBlock->location_return_path.end(); it++)
 	{
-		if (req_path == it->first)
+		if (it->first == req_path || it->first + "/" == req_path)
 		{
 			std::map<int, std::string>::iterator it_return = it->second.begin();
 			this->redirectPath(req, it_return->first, socket, it_return->second);
@@ -274,8 +313,11 @@ void Response::serveCGI(std::string cgi_response, int socket)
 {
 	buildStatusLine(200);
 	this->body = cgi_response;
-	buildHeaders();
+	if (this->body.size() < 34 || this->body.substr(0, 34) != "Content-Description: File Transfer")
+		buildHeaders();
+	// buildHeaders();
 	buildHttpMessages();
-	std::cout << "----------------\n" << message.c_str() <<std::endl;
+	std::cout << "----------------\n"
+			  << message.c_str() << std::endl;
 	send(socket, message.c_str(), message.size(), 0);
 }

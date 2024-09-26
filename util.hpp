@@ -8,8 +8,9 @@ void printConfig(const std::vector<ServerConfig> &servers);
 std::map<int, std::string> initStatus();
 std::string getCurrentTime();
 bool isDirectory(const std::string &path);
-std::string filterSlashes(std::string path);
-bool isNumber(std::string &str);
+bool isReadable(const std::string &path);
 bool isExists(const std::string &path);
+bool isNumber(std::string &str);
+std::string filterSlashes(std::string path);
 
 #endif

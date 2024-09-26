@@ -193,13 +193,9 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             }
 
             // Initialize HTTP methods
-            current_location.allow_methods["GET"] = false;
-            current_location.allow_methods["POST"] = false;
-            current_location.allow_methods["DELETE"] = false;
-            current_location.allow_methods["PUT"] = false;
-            current_location.allow_methods["HEAD"] = false;
-            current_location.allow_methods["OPTIONS"] = false;
-            current_location.allow_methods["PATCH"] = false;
+            current_location.allow_methods["GET"] = true;
+            current_location.allow_methods["POST"] = true;
+            current_location.allow_methods["DELETE"] = true;
         }
         else if (key == "}")
         {
@@ -242,7 +238,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
 
                     int parsed_port = stringToInt(port_str);
 
-                    if (!isValidrange(parsed_port, 8000, 9000))
+                    if (!isValidrange(parsed_port, 8000, 10000))
                     {
                         std::cerr << "Error: Port '" << parsed_port << "' is out of valid range (8000-9000)." << std::endl;
                         return false;
@@ -344,6 +340,10 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             else if (key == "allow_methods")
             {
                 std::string method;
+                
+                current_location.allow_methods["GET"] = false;
+                current_location.allow_methods["POST"] = false;
+                current_location.allow_methods["DELETE"] = false;
                 while (iss >> method)
                 {
                     if (current_location.allow_methods.find(method) != current_location.allow_methods.end())

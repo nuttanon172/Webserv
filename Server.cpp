@@ -146,7 +146,6 @@ void Server::checkClient()
 	std::cout << "Webserver is running...\n";
 	while (1)
 	{
-		//memcpy(&ready_sockets, &current_sockets, sizeof(current_sockets)); /* because select is destructive */
 		ready_sockets = current_sockets;
 		status = select(max_socket + 1, &ready_sockets, NULL, NULL, NULL);
 		if (status < 0)
@@ -166,8 +165,8 @@ void Server::checkClient()
 
 					if (pid < 0)
 					{
-						perror("Fork failed");
 						closeSocket(socket);
+						perror("Fork failed");
 					}
 					else if (pid == 0)
 					{
@@ -181,9 +180,7 @@ void Server::checkClient()
 							exit(0);
 						}
 						if (client_map[socket]->buildResponse() == true)
-						{
 							closeSocket(socket);
-						}
 						std::cout << YELLOW << "Webserver waiting for client....\n"
 								  << DEFAULT;
 						exit(0);
@@ -227,7 +224,7 @@ void Server::acceptNewConnection(int listen_sockets)
 
 bool Server::readRequest(int socket)
 {
-	char buffer[10000];
+	char buffer[100000];
 	int size;
 	time_t start_time;
 
@@ -235,7 +232,7 @@ bool Server::readRequest(int socket)
 	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
-		size = recv(socket, buffer, BUFFER_SIZE, 0);
+		size = recv(socket, buffer, BUFFER_SIZE - 1, 0);
 		if (size < 0)
 			break;
 		else if (!size)
@@ -248,6 +245,7 @@ bool Server::readRequest(int socket)
 		/* Check time each socket */
 		if (time(NULL) - start_time > TIME_OUT)
 			return false;
+		usleep(100000);
 	}
 	std::cout << "-----------------------------------------------------\n";
 	return (true);

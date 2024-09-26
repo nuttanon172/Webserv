@@ -2,7 +2,7 @@
 # define CGI_HPP
 
 # include "WebServer.hpp"
-# include <sstream>
+// # include <sstream>
 # define CHUNK_SIZE 4000
 struct ServerConfig;
 class Request;
@@ -32,8 +32,8 @@ class CGI
 		void set_currentDirectory(std::string &directory);
 		void set_contentLenght(std::string contentLenght);
 		void set_contentType(std::string contentType);
-		void set_body(std::string body);
-		std::string init_cgi(Request *clientreq, ServerConfig *serverBlock);
+		void set_body(std::stringstream &body);
+		std::string init_cgi(Request *clientreq);
 		// void set_boudary(std::string boudary);
 		void get_script() ;
 		const std::string &get_intepeter() const;
@@ -42,7 +42,8 @@ class CGI
 		void get_contentType() ;
 		void get_contentLenght() ;
 		void get_status() ;
-		const std::string &get_body() const;
+		int write_in_chunks(int fd);
+		// const std::stringstream &get_body() const;
 		// std::string get_boudary();
 		void gen_env();
 		// template<typename T>
@@ -55,7 +56,7 @@ class CGI
 		std::string requestMethod;
 		std::string interpeter;
 		std::string script_file;
-		std::string body;
+		std::stringstream body;
 
 		// std::string boudary;
 };

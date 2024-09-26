@@ -98,10 +98,26 @@ bool isDirectory(const std::string &path)
         return false; // Path exists, but it's not a directory
 }
 
-bool isExists(const std::string &file) 
+bool isExists(const std::string &path)
 {
-    struct stat buf;
-    return (stat(file.c_str(), &buf) == 0);
+    struct stat info;
+
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else
+        return true;
+}
+
+bool isReadable(const std::string &path)
+{
+    struct stat info;
+
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    else if (info.st_mode & S_IRUSR)
+        return true;
+    else
+        return false;
 }
 
 std::string filterSlashes(std::string path)
@@ -147,24 +163,6 @@ bool isNumber(std::string &str)
         }
     }
     return true;
-}
-
-void printProcessingStatus()
-{
-    const char *messages[] = {"CGI processing.", "CGI processing..", "CGI processing..."};
-    const int numMessages = sizeof(messages) / sizeof(messages[0]);
-    int i = 0;
-    std::cout << numMessages << '\n';
-
-    while (1)
-    {
-        std::cout << messages[i];
-        std::cout.flush(); // Ensure the message is printed immediately
-        sleep(1);
-        // Clear the current line
-        std::cout << '\r' << std::string(100, ' ') << '\r';
-        i = (i + 1) % numMessages; // wraps around begin
-    }
 }
 
 std::string List_file(std::string path) {
