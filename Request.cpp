@@ -2,6 +2,7 @@
 
 Request::Request(ServerConfig *serverBlock) : serverBlock(serverBlock)
 {
+	serverBlock = new ServerConfig();
 }
 
 Request::Request(const Request &obj)
@@ -28,6 +29,7 @@ Request &Request::operator=(const Request &obj)
 
 Request::~Request()
 {
+	delete serverBlock;
 	inputStream.clear();
 	body.clear();
 }
@@ -151,6 +153,12 @@ bool Request::parseBody()
 	// std::cout << "parsebody: \n" << body.str() << std::endl;
 	std::cout << "content-Lenght: " << i <<std::endl;
 	if (ft_stost(header_map["Content-Length"]) == i)
+		return (true);
+	else if (!serverBlock->Location.client_max_body_size && !serverBlock->ServerConfig.client_max_body_size)
+		return (true);
+	else if (serverBlock->Location.client_max_body_size && serverBlock->Location.client_max_body_size >= i)
+		return (true);
+	else if (serverBlock->ServerConfig.client_max_body_size && serverBlock->ServerConfig.client_max_body_size >= i)
 		return (true);
 	return (false);
 }
