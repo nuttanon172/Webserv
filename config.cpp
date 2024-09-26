@@ -472,11 +472,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
     {
         current_location.autoindex = false;
     }
-    else
-    {
-        std::cerr << "Error: Invalid value for 'autoindex'. Expected 'on' or 'off', but got '" << value << "'." << std::endl;
-        return false;
-    }
 }
 
         
