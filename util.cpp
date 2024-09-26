@@ -191,7 +191,6 @@ std::string List_file(std::string path) {
         std::cerr << "Error: Could not open directory." << std::endl;
         return NULL;
     }
-
     struct dirent* entry;
 
     // อ่านเนื้อหาใน directory ทีละไฟล์หรือโฟลเดอร์
@@ -200,13 +199,12 @@ std::string List_file(std::string path) {
         ss << "<li style=\"position: relative; display: flex; justify-content: space-between;\">";
         ss << "\t\t\n<a href=\"?dir=" << entry->d_name << "\">" << entry->d_name << "</a>\n";
         ss << "</li>";
-        // std::cout << entry->d_name << std::endl;
+        //std::cout << entry->d_name << std::endl;
     }
-
     ss << "</body>";
     ss << "</html>";
     // ปิด directory หลังจากใช้งานเสร็จ
     closedir(dir);
 
-    return 0;
+    return ss.str();
 }

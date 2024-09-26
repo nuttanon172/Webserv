@@ -32,9 +32,8 @@ public:
 	std::map<std::string, std::string> &getHeaderMap();
 	void writeStream(char *str, int size);
 	std::string makePath(std::string &dest);
-	void setPath(std::string &newPath);
 	bool parseRequestLine();
-	bool parseHttpHeaders();
+	bool parseHttpHeaders(std::string &serverName);
 	bool parseBody();
 	bool isMultipart();
 	bool isCorrectHost();

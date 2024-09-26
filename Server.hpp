@@ -22,6 +22,7 @@ private:
 	fd_set listen_sockets;
 	std::map<int, ServerConfig> server_config;
 	std::map<int, Client *> client_map;
+	std::map<int, std::string> server_name;
 
 public:
 	Server(const std::string &pathConfig);

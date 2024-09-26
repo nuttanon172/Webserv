@@ -2,7 +2,7 @@
 
 Request::Request(ServerConfig *serverBlock) : serverBlock(serverBlock)
 {
-	serverBlock = new ServerConfig();
+
 }
 
 Request::Request(const Request &obj)
@@ -29,7 +29,6 @@ Request &Request::operator=(const Request &obj)
 
 Request::~Request()
 {
-	delete serverBlock;
 	inputStream.clear();
 	body.clear();
 }
@@ -84,13 +83,7 @@ std::string Request::makePath(std::string &dest)
 		return (serverBlock->root);
 }
 
-void Request::setPath(std::string &newPath)
-{
-	path = makePath(newPath);
-	std::cout << "new path = " << path << '\n';
-}
-
-bool Request::parseHttpHeaders()
+bool Request::parseHttpHeaders(std::string &serverName)
 {
 	std::string buffer = "";
 	std::size_t colon;
@@ -109,7 +102,7 @@ bool Request::parseHttpHeaders()
 		buffer.clear();
 		std::getline(inputStream, buffer);
 	}
-	if (header_map["Host"].empty() == true)
+	if (header_map["Host"].empty() == true || header_map["Host"] != serverName)
 		return false;
 	return true;
 }
@@ -125,40 +118,31 @@ bool Request::parseBody()
 
 	i = 0;
 	count_loop = 0;
-	// ss << inputStream.rdbuf();
-	// std::cout << "parsebody:inputStream::" << ss.str() << std::endl;
-	// std::getline(inputStream, buffer);
-	// i += (buffer.length() + 1);
-	// body << buffer << "\n";
-	// buffer = buffer.substr(0, buffer.size() - 1);
-	// std::cout << "parsebody:buffer::" << body.str() << std::endl;
-	// buffer.clear();
 	while (std::getline(inputStream, buffer))
 	{
 		count_loop++;
 		i += (buffer.length() + 1);
 		body << buffer << "\n";
-		// colon = buffer.find_first_of(':');
-		// if (colon == std::string::npos)
-		// 	colon = buffer.find_first_of('=');
-		// key = buffer.substr(0, colon);
-		// value = buffer.substr(colon + 2, (buffer.size() - (colon + 2) - 1)); // remove \r
-		// cgi_map[key] = value;
-		// if (buffer == boundaryEnd)
-		// 	return (true);
 		buffer.clear();
 	}
 	if (count_loop == 1)
 		i--;
 	// std::cout << "parsebody: \n" << body.str() << std::endl;
 	std::cout << "content-Lenght: " << i <<std::endl;
-	if (ft_stost(header_map["Content-Length"]) == i)
-		return (true);
-	else if (!serverBlock->Location.client_max_body_size && !serverBlock->ServerConfig.client_max_body_size)
-		return (true);
-	else if (serverBlock->Location.client_max_body_size && serverBlock->Location.client_max_body_size >= i)
-		return (true);
-	else if (serverBlock->ServerConfig.client_max_body_size && serverBlock->ServerConfig.client_max_body_size >= i)
+	if (ft_stost(header_map["Content-Length"]) != i)
+		return (false);
+	std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+	for (;it_location != serverBlock->locations.end();it_location++)
+	{
+		if (getReqPath() == it_location->path || getReqPath() == it_location->path + "/")
+		{
+			if (!it_location->client_max_body_size && !serverBlock->client_max_body_size)
+				return (true);
+			else if (it_location->client_max_body_size  && it_location->client_max_body_size >= i)
+				return (true);
+		}
+	}
+	if (serverBlock->client_max_body_size && serverBlock->client_max_body_size >= i)
 		return (true);
 	return (false);
 }

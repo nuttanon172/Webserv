@@ -24,7 +24,6 @@ public:
 	void buildStatusLine(int code);
 	void buildHeaders();
 	void buildHeadersRedirect(std::string host, std::string &path);
-	void buildBody();
 	void buildIndex();
 	void buildErrorBody(int code);
 	void buildHttpCode(int code, int socket);

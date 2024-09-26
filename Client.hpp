@@ -13,6 +13,7 @@ class Client
 private:
 	time_t last_time;
 	int socket;
+	std::string serverName;
 	Request *req;
 	Response *resp;
 	ServerConfig *serverBlock;
@@ -29,6 +30,7 @@ public:
 	void updateTime();
 	time_t getLastTime();
 	bool check_cgi();
+	void setServerName(std::string serverName);
 };
 
 #endif
