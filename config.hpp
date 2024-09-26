@@ -36,5 +36,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
 bool validateConfig(const ServerConfig &server);
 int stringToInt(const std::string &str);
 void printServerConfig(const ServerConfig &server);
+std::string trim(const std::string& s);
 
 #endif // CONFIG_HPP
