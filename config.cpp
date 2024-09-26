@@ -458,6 +458,28 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                     }
                 }
             }
+       
+                else if (key == "autoindex")
+{
+    std::string value;
+    iss >> value;
+
+    if (value == "on")
+    {
+        current_location.autoindex = true;
+    }
+    else if (value == "off")
+    {
+        current_location.autoindex = false;
+    }
+    else
+    {
+        std::cerr << "Error: Invalid value for 'autoindex'. Expected 'on' or 'off', but got '" << value << "'." << std::endl;
+        return false;
+    }
+}
+
+        
             else if (key == "cgi_path")
             {
                 std::string path;
