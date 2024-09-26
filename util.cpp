@@ -83,6 +83,9 @@ std::map<int, std::string> initStatus()
     status[200] = "OK";
     status[201] = "Created";
     status[301] = "Moved Permanently";
+    status[302] = "Found";
+    status[303] = "See Other";
+    status[304] = "Not Modified";
     status[307] = "Temporary Redirect";
     status[400] = "Bad Request";
     status[403] = "ForBidden";

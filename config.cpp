@@ -5,6 +5,170 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <algorithm>
+#include <cctype>  
+
+
+// Function to check if a line starts with a certain keyword
+bool startsWith(const std::string& line, const std::string& keyword) {
+    return trim(line).find(keyword) == 0;
+}
+
+
+bool checkServerAndLocationBlocks(const std::string& filename) {
+    std::ifstream configFile(filename.c_str());
+    if (!configFile) {
+        std::cerr << "Unable to open configuration file: " << filename << std::endl;
+        return false;
+    }
+
+    std::string line;
+    bool insideServerBlock = false;
+    bool insideLocationBlock = false;
+    bool serverStarted = false;
+    bool locationStarted = false;
+    int lineNum = 0;
+    int openBracesCount = 0;
+
+    while (std::getline(configFile, line)) {
+        lineNum++;
+        std::string trimmedLine = trim(line);
+
+        // Ignore empty lines
+        if (trimmedLine.empty()) continue;
+
+        // Check for server block start
+        if (!insideServerBlock && startsWith(trimmedLine, "server")) {
+            serverStarted = true;
+        }
+
+        // Check for opening of server block (brace '{')
+        if (serverStarted && trimmedLine.find('{') != std::string::npos) {
+            insideServerBlock = true;
+            serverStarted = false;
+            openBracesCount++;
+        }
+
+        // If inside server block, check for location block start
+        if (insideServerBlock && !insideLocationBlock && startsWith(trimmedLine, "location")) {
+            locationStarted = true;
+        }
+
+        // Check for opening of location block (brace '{')
+        if (locationStarted && trimmedLine.find('{') != std::string::npos) {
+            insideLocationBlock = true;
+            locationStarted = false;
+            openBracesCount++;
+        }
+
+        // Allow for a case where `location` is split across two lines
+        if (locationStarted && trimmedLine.find('{') == std::string::npos) {
+            std::getline(configFile, line);
+            lineNum++;
+            trimmedLine = trim(line);
+            if (trimmedLine == "{") {
+                insideLocationBlock = true;
+                locationStarted = false;
+                openBracesCount++;
+            } else {
+                std::cerr << "Error: Missing opening brace for location block, line " << lineNum << std::endl;
+                return false;
+            }
+        }
+
+        // Check for closing of location or server block
+        if (insideLocationBlock || insideServerBlock) {
+            if (trimmedLine == "}") {
+                openBracesCount--;
+                if (insideLocationBlock) {
+                    insideLocationBlock = false;
+                } else if (insideServerBlock && openBracesCount == 0) {
+                    insideServerBlock = false;
+                }
+            }
+        }
+
+        // Error detection: if any config directive appears outside of the server or location blocks
+        if (!insideServerBlock && !insideLocationBlock && !serverStarted && !locationStarted) {
+            if (trimmedLine != "}") { // Allowing braces to close blocks
+                std::cerr << "Error: Directive '" << trimmedLine 
+                          << "' must be inside a server block, line " << lineNum << std::endl;
+                return false;
+            }
+        }
+
+        // Error detection: location block directive outside server block
+        if (!insideServerBlock && insideLocationBlock) {
+            std::cerr << "Error: Location block must be inside a server block, line " << lineNum << std::endl;
+            return false;
+        }
+    }
+
+    // Final checks for missing closing braces
+    if (insideServerBlock) {
+        std::cerr << "Error: Missing closing brace for server block" << std::endl;
+        return false;
+    }
+    if (insideLocationBlock) {
+        std::cerr << "Error: Missing closing brace for location block" << std::endl;
+        return false;
+    }
+
+    configFile.close();
+    return true; // No errors found
+}
+
+
+
+bool checkBracesOnSeparateLine(const std::string& filename) {
+    std::ifstream configFile(filename.c_str());
+    if (!configFile) {
+        std::cerr << "Unable to open configuration file: " << filename << std::endl;
+        return false;
+    }
+
+    std::string line;
+    int lineNum = 0;             // To track line numbers for error reporting
+
+    while (std::getline(configFile, line)) {
+        lineNum++;
+        
+        // Remove leading/trailing spaces for cleaner checks
+        std::string trimmedLine;
+        size_t firstChar = line.find_first_not_of(" \t");
+        if (firstChar != std::string::npos)
+            trimmedLine = line.substr(firstChar);
+        
+        // Check if a brace is on the same line as other characters
+        if (trimmedLine.find('{') != std::string::npos && trimmedLine.length() > 1) {
+            std::cerr << "Error: '{' must be on its own line at line " << lineNum << std::endl;
+            return false;
+        }
+        
+        if (trimmedLine.find('}') != std::string::npos && trimmedLine.length() > 1) {
+            std::cerr << "Error: '}' must be on its own line at line " << lineNum << std::endl;
+            return false;
+        }
+    }
+
+    configFile.close();
+    return true; // If no issues were found
+}
+
+
+bool isNotSpace(int ch) {
+    return !std::isspace(ch);
+}
+
+// Trim function
+std::string trim(const std::string& s) {
+    std::string result = s;
+
+    result.erase(result.begin(), std::find_if(result.begin(), result.end(), isNotSpace));
+    result.erase(std::find_if(result.rbegin(), result.rend(), isNotSpace).base(), result.end());
+
+    return result;
+}
 
 bool isValidrange(int port, int min, int max)
 {
@@ -51,6 +215,18 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
     if (!config_file.is_open())
     {
         std::cerr << "Failed to open config file: " << filename << std::endl;
+        return false;
+    }
+
+       if (!checkBracesOnSeparateLine(filename)) 
+     {
+         std::cerr << "{ or } must to stay on new line" << filename << std::endl;
+        return false;
+     }
+
+     if (!checkServerAndLocationBlocks(filename)) {
+        
+        std::cout << "Configuration file failed location block checks." << std::endl;
         return false;
     }
 
