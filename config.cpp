@@ -217,6 +217,18 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
         return false;
     }
 
+       if (!checkBracesOnSeparateLine(filename)) 
+     {
+         std::cerr << "{ or } must to stay on new line" << filename << std::endl;
+        return false;
+     }
+
+     if (!checkServerAndLocationBlocks(filename)) {
+        
+        std::cout << "Configuration file failed location block checks." << std::endl;
+        return false;
+    }
+
     std::string line;
     ServerConfig current_server;
     Location current_location;
