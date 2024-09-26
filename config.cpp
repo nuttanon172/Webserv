@@ -209,6 +209,7 @@ int stringToInt(const std::string &str)
     return num;
 }
 
+
 bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &servers)
 {
     std::ifstream config_file(filename.c_str());
@@ -218,15 +219,15 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
         return false;
     }
 
-    if (!checkBracesOnSeparateLine(filename)) 
-    {
-        std::cerr << "{ or } must stay on a new line: " << filename << std::endl;
+       if (!checkBracesOnSeparateLine(filename)) 
+     {
+         std::cerr << "{ or } must to stay on new line" << filename << std::endl;
         return false;
-    }
+     }
 
-    if (!checkServerAndLocationBlocks(filename)) 
-    {
-        std::cerr << "Configuration file failed location block checks." << std::endl;
+     if (!checkServerAndLocationBlocks(filename)) {
+        
+        std::cout << "Configuration file failed location block checks." << std::endl;
         return false;
     }
 
@@ -238,23 +239,21 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
     int server_block_count = 0;
     int location_block_count = 0;
 
-    // Initialize default values for server and location
-    current_server.client_max_body_size = 0;  // Default for server
-    current_location.client_max_body_size = 0;  // Default for location
-
     while (std::getline(config_file, line))
     {
+        // Remove comments (everything after '#')
         std::size_t comment_pos = line.find('#');
         if (comment_pos != std::string::npos)
         {
             line = line.substr(0, comment_pos);
         }
 
+        // Remove semicolon if present
         if (!line.empty() && line[line.size() - 1] == ';')
         {
             line = line.substr(0, line.size() - 1);
         }
-
+        // Manually trim whitespace from the line
         std::string::iterator it = line.begin();
         while (it != line.end() && std::isspace(*it))
         {
@@ -268,6 +267,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             rit = std::string::reverse_iterator(line.erase((++rit).base()));
         }
 
+        // Check for a lone "{" line, which is not allowed before `server` or `location`
         if (line == "{")
         {
             std::cerr << "Error: Unmatched '{' found on a new line." << std::endl;
@@ -278,6 +278,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
         std::string key;
         iss >> key;
 
+        // Handle opening "server" block with "{" on the same line or next line
         if (key == "server")
         {
             if (in_server_block)
@@ -293,11 +294,11 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             {
                 in_server_block = true;
                 server_block_count++;
-                current_server = ServerConfig(); // Reset server config
-                current_server.client_max_body_size = 0; // Default value for server block
+                current_server = ServerConfig(); // Reset the server config
             }
             else if (next_token.empty())
             {
+                // Check for "{" on the next line
                 std::getline(config_file, line);
                 std::istringstream next_iss(line);
                 next_iss >> next_token;
@@ -306,8 +307,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 {
                     in_server_block = true;
                     server_block_count++;
-                    current_server = ServerConfig(); // Reset server config
-                    current_server.client_max_body_size = 0; // Default value for server block
+                    current_server = ServerConfig(); // Reset the server config
                 }
                 else
                 {
@@ -337,7 +337,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             iss >> current_location.path;
             if (current_location.path[0] != '/')
                 current_location.path = "/" + current_location.path;
-
             std::string next_token;
             iss >> next_token;
 
@@ -345,11 +344,10 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             {
                 in_location_block = true;
                 location_block_count++;
-                current_location = Location(); // Reset location config
-                current_location.client_max_body_size = 0; // Default value for location block
             }
             else if (next_token.empty())
             {
+                // Check for "{" on the next line
                 std::getline(config_file, line);
                 std::istringstream next_iss(line);
                 next_iss >> next_token;
@@ -358,8 +356,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 {
                     in_location_block = true;
                     location_block_count++;
-                    current_location = Location(); // Reset location config
-                    current_location.client_max_body_size = 0; // Default value for location block
                 }
                 else
                 {
@@ -372,33 +368,11 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 std::cerr << "Error: Unexpected token '" << next_token << "' after 'location' keyword." << std::endl;
                 return false;
             }
-        }
-        else if (key == "client_max_body_size")
-        {
-            std::string bodysize;
-            iss >> bodysize;
-            int intbodysize = stringToInt(bodysize);
 
-            if (intbodysize <= 0)
-            {
-                std::cerr << "Error: Invalid client_max_body_size value." << std::endl;
-                return false;
-            }
-
-            if (!isValidrange(intbodysize, 1, 3000001))
-            {
-                std::cerr << "Error: Size '" << intbodysize << "' is out of valid range." << std::endl;
-                return false;
-            }
-
-            if (in_location_block)
-            {
-                current_location.client_max_body_size = intbodysize;
-            }
-            else
-            {
-                current_server.client_max_body_size = intbodysize;
-            }
+            // Initialize HTTP methods
+            current_location.allow_methods["GET"] = true;
+            current_location.allow_methods["POST"] = true;
+            current_location.allow_methods["DELETE"] = true;
         }
         else if (key == "}")
         {
@@ -408,7 +382,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 location_block_count--;
                 current_server.locations.push_back(current_location);
                 current_location = Location(); // Reset location config
-                current_location.client_max_body_size = 0; // Default value for location block
             }
             else if (in_server_block)
             {
@@ -426,9 +399,181 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 return false;
             }
         }
-        // Handle other configuration keys as needed...
+        else if (in_server_block)
+        {
+            // Other key handling (like listen, server_name, etc.)
+            if (key == "listen")
+            {
+                std::string port_str;
+                while (iss >> port_str)
+                {
+                    if (!isNumber(port_str))
+                    {
+                        std::cerr << "Error: Port '" << port_str << "' is not a valid number." << std::endl;
+                        return false;
+                    }
+
+                    int parsed_port = stringToInt(port_str);
+
+                    if (!isValidrange(parsed_port, 8000, 10000))
+                    {
+                        std::cerr << "Error: Port '" << parsed_port << "' is out of valid range (8000-9000)." << std::endl;
+                        return false;
+                    }
+
+                    current_server.listen_ports.push_back(parsed_port);
+                }
+            }
+            else if (key == "server_name")
+            {
+                iss >> current_server.server_name;
+            }
+            else if (key == "host")
+            {
+                iss >> current_server.host;
+            }
+            else if (key == "root")
+            {
+                if (in_location_block)
+                {
+                    iss >> current_location.root;
+                }
+                else
+                {
+                    iss >> current_server.root;
+                }
+            }
+            else if (key == "index")
+            {
+                std::string path;
+                while (iss >> path)
+                {
+                    if (in_location_block)
+                    {
+                        current_location.index.push_back(path);
+                    }
+                    else
+                    {
+                        current_server.index.push_back(path);
+                    }
+                }
+            }
+            else if (key == "cgi_path")
+            {
+                std::string path;
+                while (iss >> path)
+                {
+                    if (in_location_block)
+                    {
+                        current_location.cgi_path.push_back(path);
+                    }
+                }
+            }
+            else if (key == "cgi_ext")
+            {
+                std::string path;
+                while (iss >> path)
+                {
+                    if (in_location_block)
+                    {
+                        current_location.cgi_ext.push_back(path);
+                    }
+                }
+            }
+            else if (key == "client_max_body_size")
+            {
+                std::string bodysize;
+                iss >> bodysize;
+                int intbodysize = stringToInt(bodysize);
+
+                if (intbodysize <= 0)
+                {
+                    std::cerr << "Error: Invalid client_max_body_size value." << std::endl;
+                    return false;
+                }
+
+                if (!isValidrange(intbodysize, 1, 3000001))
+                {
+                    std::cerr << "Error: Size '" << intbodysize << "' is out of valid range." << std::endl;
+                    return false;
+                }
+
+                if (in_location_block)
+                {
+                    current_location.client_max_body_size = intbodysize;
+                }
+                else
+                {
+                    current_server.client_max_body_size = intbodysize;
+                }
+            }
+            else if (key == "error_page")
+            {
+                int code;
+                std::string path;
+                iss >> code >> path;
+                current_server.error_pages[code] = path;
+            }
+            else if (key == "allow_methods")
+            {
+                std::string method;
+                
+                current_location.allow_methods["GET"] = false;
+                current_location.allow_methods["POST"] = false;
+                current_location.allow_methods["DELETE"] = false;
+                while (iss >> method)
+                {
+                    if (current_location.allow_methods.find(method) != current_location.allow_methods.end())
+                    {
+                        current_location.allow_methods[method] = true;
+                    }
+                    else
+                    {
+                        std::cerr << "Warning: Unsupported HTTP method \"" << method << "\" found in config file.\n";
+                    }
+                }
+            }
+            else if (key == "return")
+            {
+                int status_code;
+                std::string url;
+
+                // Check if a status code is provided
+                if (!(iss >> status_code))
+                {
+                    // No status code provided, default to 302 (temporary redirect)
+                    status_code = 302;
+
+                    // Make sure to extract the URL after skipping the missing status code
+                    iss.clear();
+                    iss >> url;
+                }
+                else
+                {
+                    // Status code provided, get the URL
+                    iss >> url;
+                }
+
+                if (url.empty())
+                {
+                    std::cerr << "Error: 'return' directive missing URL." << std::endl;
+                    return false;
+                }
+
+                current_location.return_path[status_code] = url;
+                current_server.location_return_path.insert(std::make_pair(current_location.path, current_location.return_path));
+                /*std::cout << "path: " << current_server.location_return_path.begin()->first << '\n';
+                std::cout << "code: " << current_server.location_return_path.begin()->second.begin()->first << '\n';
+                std::cout << "path redirect: " << current_server.location_return_path.begin()->second.begin()->second << '\n';
+                std::cout << "-------\n";
+                std::cout << "path: " << current_location.path << '\n';
+                std::cout << "code: " << status_code << '\n';
+                std::cout << "path redirect: " << current_location.return_path[status_code] << '\n';*/
+            }
+        }
     }
 
+    // Final validation after loop
     if (server_block_count > 0)
     {
         std::cerr << "Error: Unclosed 'server' block found." << std::endl;
@@ -444,6 +589,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
     config_file.close();
     return true;
 }
+
 
 
 void printServerConfig(const ServerConfig &server)
