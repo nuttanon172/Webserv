@@ -45,7 +45,7 @@ bool Client::buildResponse()
 		resp->buildHttpCode(400, socket);
 		return true;
 	}
-	if (resp->isMethodAllow(req->getMethod(), this->filterLocation()) == false)
+	if (resp->isMethodAllow(req->getMethod(), req->getReqPath()) == false)
 	{
 		resp->buildHttpCode(405, socket);
 		return true;
@@ -61,13 +61,6 @@ bool Client::buildResponse()
 			this->getResponse()->serveFile(getRequest()->getPath(), getRequest()->getReqPath(), socket);
 	}
 	return true;
-}
-
-std::string Client::filterLocation()
-{
-	std::string path = req->getReqPath();
-	path = path.substr(0, path.find_last_of('/')) + "/";
-	return (path);
 }
 
 Request *Client::getRequest()

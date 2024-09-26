@@ -183,7 +183,12 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 			if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
 			{
 				this->buildErrorBody(404);
-				return;
+				return ;
+			}
+			else
+			{
+				this->readFile(tmp_path, reqPath, socket);
+				return ;
 			}
 		}
 		tmp_path = reqPath.substr(0, reqPath.find_last_of('/'));

@@ -28,7 +28,6 @@ public:
 	bool buildResponse();
 	void updateTime();
 	time_t getLastTime();
-	std::string filterLocation();
 	bool check_cgi();
 };
 
