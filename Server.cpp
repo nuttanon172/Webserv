@@ -165,8 +165,8 @@ void Server::checkClient()
 
 					if (pid < 0)
 					{
-						perror("Fork failed");
 						closeSocket(socket);
+						perror("Fork failed");
 					}
 					else if (pid == 0)
 					{
@@ -232,14 +232,11 @@ bool Server::readRequest(int socket)
 	std::cout << "---------------------- Request ----------------------\n";
 	while (true)
 	{
-		usleep(100000);
 		size = recv(socket, buffer, BUFFER_SIZE - 1, 0);
 		if (size < 0)
 			break;
 		else if (!size)
 			break;
-		if (size > BUFFER_SIZE)
-			size = BUFFER_SIZE - 1;
 		buffer[size] = '\0';
 		// write to request string stream
 		std::cout << buffer << '\n';
@@ -248,6 +245,7 @@ bool Server::readRequest(int socket)
 		/* Check time each socket */
 		if (time(NULL) - start_time > TIME_OUT)
 			return false;
+		usleep(100000);
 	}
 	std::cout << "-----------------------------------------------------\n";
 	return (true);

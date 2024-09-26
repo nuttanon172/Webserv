@@ -165,24 +165,6 @@ bool isNumber(std::string &str)
     return true;
 }
 
-void printProcessingStatus()
-{
-    const char *messages[] = {"CGI processing.", "CGI processing..", "CGI processing..."};
-    const int numMessages = sizeof(messages) / sizeof(messages[0]);
-    int i = 0;
-    std::cout << numMessages << '\n';
-
-    while (1)
-    {
-        std::cout << messages[i];
-        std::cout.flush(); // Ensure the message is printed immediately
-        sleep(1);
-        // Clear the current line
-        std::cout << '\r' << std::string(100, ' ') << '\r';
-        i = (i + 1) % numMessages; // wraps around begin
-    }
-}
-
 std::string List_file(std::string path) {
     // const char* path = "."; // directory ที่ต้องการ list (ในที่นี้คือ directory ปัจจุบัน)
 

@@ -65,15 +65,10 @@ void Response::buildHeadersRedirect(std::string host, std::string &path)
 {
 	std::stringstream ss;
 
-	if (host[0] != '/')
-		host = "/" + host;
+	host = "http://" + filterSlashes(host + "/" + path + "/");
 	if (serverBlock->server_name.empty() != true)
-	{
 		ss << "Server: " << serverBlock->server_name << "\r\n";
-		ss << "Location: " << "http://" << host << path << "\r\n";
-	}
-	else
-		ss << "Location: " << "http://" << host << path << "\r\n";
+	ss << "Location: " << host << "\r\n";
 	ss << "Date: " + getCurrentTime() + "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
 	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
@@ -124,7 +119,6 @@ void Response::buildHttpCode(int code, int socket)
 
 bool Response::isMethodAllow(std::string &method, std::string path)
 {
-	std::cout << "\tpath_allow: " << path << '\n';
 	if (serverBlock->locations.empty() != true)
 	{
 		std::vector<Location>::iterator it_location = serverBlock->locations.begin();
@@ -169,7 +163,13 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 
 	std::cout << "\tpath: " << path << " " << path[path.size() - 1] << '\n';
 	// check if it directory search for index inside else search for index
-	if (path[path.size() - 1] != '/' && isReadable(path) == false)
+	if (path[path.size() - 1] != '/' && isDirectory(path) == true)
+	{
+		path = path + "/";
+		this->readFile(path, reqPath, socket);
+		return ;
+	}
+	if (path[path.size() - 1] != '/' && isReadable(path) == false && isExists(path) == true)
 	{
 		this->buildErrorBody(403);
 		return;
@@ -255,7 +255,10 @@ void Response::readFile(std::string &path, std::string &reqPath, int socket)
 			inputFile.open(tmp_path.c_str());
 	}
 	else
+	{
 		inputFile.open(path.c_str());
+		std::cout << "open file " << path << '\n';
+	}
 	while (std::getline(inputFile, line))
 		ss << line << "\r\n";
 	body = ss.str();
@@ -266,9 +269,6 @@ bool Response::searchFile(Request *req, int socket)
 	std::map<std::string, std::map<int, std::string> >::iterator it = serverBlock->location_return_path.begin();
 	std::string req_path = req->getReqPath();
 
-	std::cout << "\t\treq_path: " << req_path << '\n';
-	if (req_path[req_path.size() - 1] != '/')
-		return true;
 	for (; it != serverBlock->location_return_path.end(); it++)
 	{
 		if (it->first == req_path || it->first + "/" == req_path)
