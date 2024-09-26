@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <algorithm>
+#include <cctype>  
 
 
 // Function to check if a line starts with a certain keyword
