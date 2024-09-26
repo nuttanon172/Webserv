@@ -735,15 +735,15 @@ bool validateConfig(const ServerConfig &server)
         return false;
     }
 
- \\   for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it)
- \\   {
- \\       std::string full_path = "./" + server.root + it->path;
- \\       if (!directoryExists(full_path))
- \\       {
- \\           std::cerr << "Error: Location root \"" << full_path << "\" does not exist\n";
- \\           return false;
- \\       }
- \\   }
+// \\   for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it)
+// \\   {
+// \\       std::string full_path = "./" + server.root + it->path;
+// \\       if (!directoryExists(full_path))
+// \\       {
+// \\           std::cerr << "Error: Location root \"" << full_path << "\" does not exist\n";
+// \\           return false;
+// \\       }
+// \\   }
 
     return true;
 }
