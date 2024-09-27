@@ -2,13 +2,20 @@ NAME      = webserv
 
 CXX       = c++
 
-# CXXFLAGS  = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
-CXXFLAGS  = -std=c++98 -g -fsanitize=address
-# CXXFLAGS  = -std=c++98 -g
+CXXFLAGS  = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
+#CXXFLAGS  = -std=c++98 -g -fsanitize=address
+#CXXFLAGS  = -std=c++98 -g
 
 OBJ_DIR   = obj
 
-#HEADERS   = iter.hpp
+HEADERS   = WebServer.hpp \
+			CGI.hpp \
+			Client.hpp \
+			config.hpp \
+			Request.hpp \
+			Response.hpp \
+			Server.hpp \
+			util.hpp
 
 SRCS      = main.cpp \
 			config.cpp \
@@ -16,7 +23,7 @@ SRCS      = main.cpp \
 			Server.cpp \
 			Request.cpp \
 			Response.cpp \
-			Client.cpp	\
+			Client.cpp \
 			CGI.cpp
 
 OBJS      =	$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))

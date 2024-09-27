@@ -209,6 +209,21 @@ int stringToInt(const std::string &str)
     return num;
 }
 
+size_t stringToST(const std::string &str)
+{
+    std::istringstream iss(str);
+    size_t num;
+    iss >> num;
+
+    // Check if the conversion succeeded
+    if (iss.fail())
+    {
+        std::cerr << "Error: invalid integer conversion from string \"" << str << "\"" << std::endl;
+        return 0; // You can decide how to handle the error
+    }
+
+    return num;
+}
 
 bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &servers)
 {
@@ -501,27 +516,27 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             {
                 std::string bodysize;
                 iss >> bodysize;
-                int intbodysize = stringToInt(bodysize);
+                size_t sizetbodysize = stringToST(bodysize);
 
-                if (intbodysize <= 0)
+                if (sizetbodysize <= 0)
                 {
                     std::cerr << "Error: Invalid client_max_body_size value." << std::endl;
                     return false;
                 }
 
-                if (!isValidrange(intbodysize, 1, 3000001))
+                if (!isValidrange(sizetbodysize, 0, 3000000))
                 {
-                    std::cerr << "Error: Size '" << intbodysize << "' is out of valid range." << std::endl;
+                    std::cerr << "Error: Size '" << sizetbodysize << "' is out of valid range." << std::endl;
                     return false;
                 }
 
                 if (in_location_block)
                 {
-                    current_location.client_max_body_size = intbodysize;
+                    current_location.client_max_body_size = sizetbodysize;
                 }
                 else
                 {
-                    current_server.client_max_body_size = intbodysize;
+                    current_server.client_max_body_size = sizetbodysize;
                 }
             }
             else if (key == "error_page")

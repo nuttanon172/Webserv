@@ -177,32 +177,66 @@ bool isNumber(std::string &str)
     return true;
 }
 
-std::string List_file(std::string path) {
-    // const char* path = "."; // directory ที่ต้องการ list (ในที่นี้คือ directory ปัจจุบัน)
-
-    // เปิด directory
+std::string List_file(std::string path, std::string reqPath)
+{
     std::stringstream ss;
-    ss << "<!DOCTYPE html>\n<html lang=\"en\">\n<body>\n<div class=\"header\">\n \
-    <h1>File Explorer</h1>\n";
-    DIR* dir = opendir(path.c_str());
+    ss << "<!DOCTYPE html>\n";
+    ss << "<html lang=\"en\">\n";
+    ss << "<head>\n<style>\n";
+    ss << "ul { list-style: none; padding: 0;margin: 0;}\n";
+    ss << "li { position: relative; display: flex; justify-content: space-between; padding: 5px 0; }\n";
+    ss << "a { text-decoration: none; color: #000; }\n";
+    ss << "a:hover { text-decoration: underline; }\n";
+    ss << "hr { border: 0; border-top: 2px solid #ddd; margin: 10px 0; }\n"; // Add styling for the separator line
+    ss << "</style></head>\n";
+    ss << "<body>\n";
+    ss << "<div class=\"header\">\n<h1>File Explorer</h1>\n";
+    ss << "<h2>Index of " << reqPath << "</h2>\n";
 
+    reqPath = filterSlashes(reqPath + "/");
+
+    DIR* dir = opendir(path.c_str());
     // ตรวจสอบว่า directory ถูกเปิดสำเร็จหรือไม่
     if (dir == NULL) {
-        std::cerr << "Error: Could not open directory." << std::endl;
-        return NULL;
+        std::cerr << "Error: Could not open directory " << path << std::endl;
+        return "<html><body><h1>Error: Could not open directory</h1></body></html>";
     }
-    struct dirent* entry;
 
+    ss << "<hr>\n";
+    
+    ss << "<ul>";
+
+    ss << "<li><a href=\"..\">../</a></li>\n";
+
+    struct dirent* entry;
+    struct stat statbuf;
+    
     // อ่านเนื้อหาใน directory ทีละไฟล์หรือโฟลเดอร์
     while ((entry = readdir(dir)) != NULL) {
-        // พิมพ์ชื่อไฟล์หรือโฟลเดอร์ที่พบ
-        ss << "<li style=\"position: relative; display: flex; justify-content: space-between;\">";
-        ss << "\t\t\n<a href=\"?dir=" << entry->d_name << "\">" << entry->d_name << "</a>\n";
-        ss << "</li>";
-        //std::cout << entry->d_name << std::endl;
+        std::string fullPath = path + "/" + entry->d_name;
+
+        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
+            continue;
+        }
+
+        if (stat(fullPath.c_str(), &statbuf) == 0) {
+            ss << "<li>";
+
+            if (S_ISDIR(statbuf.st_mode)) {
+                ss << "<a href=\"?dir=" << reqPath << entry->d_name << "/\">" << entry->d_name << "/</a>\n";
+            } else {
+                ss << "<a href=\"" << reqPath << entry->d_name << "\">" << entry->d_name << "</a>\n";
+            }
+            ss << "</li>\n";
+        }
     }
-    ss << "</body>";
-    ss << "</html>";
+
+    ss << "</ul>\n";
+
+    ss << "<hr>\n";
+    
+    ss << "</body>\n";
+    ss << "</html>\n";
     // ปิด directory หลังจากใช้งานเสร็จ
     closedir(dir);
 

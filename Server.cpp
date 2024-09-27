@@ -70,7 +70,6 @@ bool Server::initSocket()
 		port_it = serverBlock_it->listen_ports.begin();
 		for (; port_it != serverBlock_it->listen_ports.end(); port_it++)
 		{
-			std::cout << "Port: " << *port_it << std::endl;
 			server_fd = socket(AF_INET, SOCK_STREAM, 0);
 			if (server_fd < 0)
 			{
@@ -94,13 +93,6 @@ bool Server::initSocket()
 			if (identifySocket(*port_it, *serverBlock_it) == false)
 				return false;
 		}
-	}
-	std::map<int, ServerConfig>::iterator it = server_config.begin();
-	for (; it != server_config.end(); it++)
-	{
-		std::cout << "Socket: " << it->first << std::endl;
-		std::cout << "Server: " << it->second.server_name << std::endl;
-		std::cout << "Port: " << it->second.listen_ports[0] << std::endl;
 	}
 	return true;
 }
@@ -134,9 +126,9 @@ bool Server::identifySocket(int port, ServerConfig &serverBlock)
 		max_socket = server_fd;
 	server_config.insert(std::make_pair(server_fd, serverBlock));
 	server_name.insert(std::make_pair(server_fd, serverBlock.server_name + ":" + ft_itos(port)));
-	std::cout << GREEN << "1Create socket[" << server_fd << "]\n"
+	std::cout << GREEN << "Create socket[" << server_fd << "]: http://" << server_name[server_fd] << '\n'
 			  << DEFAULT;
-	std::cout << GREEN << "2Max Socket: " << max_socket << '\n'
+	std::cout << YELLOW << "Max Socket: " << max_socket << '\n'
 			  << DEFAULT;
 	return true;
 }
@@ -145,7 +137,7 @@ void Server::checkClient()
 {
 	int status;
 
-	std::cout << "Webserver is running...\n";
+	std::cout << BLUE << "Webserver is running...\n" << DEFAULT;
 	while (1)
 	{
 		ready_sockets = current_sockets;
@@ -219,7 +211,7 @@ void Server::acceptNewConnection(int listen_sockets)
 		max_socket = new_socket;
 	client_map[new_socket]->setServerName(server_name[listen_sockets]);
 	// printServerConfig(server_config[listen_sockets]);
-	std::cout << GREEN << "Accept new socket[" << new_socket << "]\n"
+	std::cout << GREEN << "Accept new socket: [" << new_socket << "]\n"
 			  << DEFAULT;
 	std::cout << GREEN << "Max Socket: " << max_socket << '\n'
 			  << DEFAULT;
@@ -242,7 +234,7 @@ bool Server::readRequest(int socket)
 			break;
 		buffer[size] = '\0';
 		// write to request string stream
-		std::cout << buffer << '\n';
+		std::cout << DEFAULT << buffer << '\n';
 		if (client_map[socket])
 			client_map[socket]->getRequest()->writeStream(buffer, size);
 		/* Check time each socket */
@@ -272,6 +264,7 @@ void Server::closeSocket(int socket)
 		delete client_map[socket];
 		client_map[socket] = NULL;
 		close(socket);
+		std::cout << RED << "Socket: [" << socket << "] closed" << '\n' << DEFAULT; 
 	}
 	client_map.erase(socket);
 }
