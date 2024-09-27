@@ -21,6 +21,7 @@ struct Location
 
 struct ServerConfig
 {
+    bool autoindex;
     std::vector<int> listen_ports;
     std::string server_name;
     std::string host;
