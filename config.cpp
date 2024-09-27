@@ -359,6 +359,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             {
                 in_location_block = true;
                 location_block_count++;
+                current_location.autoindex = current_server.autoindex;
             }
             else if (next_token.empty())
             {
@@ -371,6 +372,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 {
                     in_location_block = true;
                     location_block_count++;
+                    current_location.autoindex = current_server.autoindex; // set default of autoindex  by server
                 }
                 else
                 {
@@ -474,19 +476,34 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 }
             }
        
-                else if (key == "autoindex")
+            else if (key == "autoindex")
             {
                 std::string value;
                 iss >> value;
 
-                if (value == "on")
+                 if (in_location_block)
                 {
-                    current_server.autoindex = true; // Server level autoindex
+                             if (value == "on")
+                            {
+                                current_location.autoindex = true;
+                            }
+                            else if (value == "off")
+                            {
+                                current_location.autoindex = false;
+                            }
                 }
-                else if (value == "off")
+                else
                 {
-                    current_server.autoindex = false; // Server level autoindex
+                            if (value == "on")
+                            {
+                                current_server.autoindex = true;
+                            }
+                            else if (value == "off")
+                            {
+                                current_server.autoindex = false;
+                            }
                 }
+                
             }
 
         
@@ -608,34 +625,34 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 return false;
             }
         }
-        else if (in_location_block)
-        {
-            // Handle location-level configuration options
-            if (key == "autoindex")
-            {
-                std::string value;
-                iss >> value;
+        // else if (in_location_block)
+        // {
+        //     // Handle location-level configuration options
+        //     if (key == "autoindex")
+        //     {
+        //         std::string value;
+        //         iss >> value;
 
-                if (value == "on")
-                {
-                    current_location.autoindex = true; // Location level autoindex
-                }
-                else if (value == "off")
-                {
-                    current_location.autoindex = false; // Location level autoindex
-                }
-            }
-            else
-            {
-                std::cerr << "Error: Unexpected key '" << key << "' in location block." << std::endl;
-                return false;
-            }
-        }
-         else
-        {
-            std::cerr << "Error: Unexpected line: " << line << std::endl;
-            return false;
-        }
+        //         if (value == "on" || current_server.autoindex == true)
+        //         {
+        //             current_location.autoindex = true; // Location level autoindex
+        //         }
+        //         else if (value == "off" || current_server.autoindex == false)
+        //         {
+        //             current_location.autoindex = false; // Location level autoindex
+        //         }
+        //     }
+        //     else
+        //     {
+        //         std::cerr << "Error: Unexpected key '" << key << "' in location block." << std::endl;
+        //         return false;
+        //     }
+        // }
+        //  else
+        // {
+        //     std::cerr << "Error: Unexpected line: " << line << std::endl;
+        //     return false;
+        // }
     }
 
     // Final validation after loop
