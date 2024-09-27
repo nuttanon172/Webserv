@@ -475,19 +475,19 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             }
        
                 else if (key == "autoindex")
-{
-    std::string value;
-    iss >> value;
+            {
+                std::string value;
+                iss >> value;
 
-    if (value == "on")
-    {
-        current_location.autoindex = true;
-    }
-    else if (value == "off")
-    {
-        current_location.autoindex = false;
-    }
-}
+                if (value == "on")
+                {
+                    current_server.autoindex = true; // Server level autoindex
+                }
+                else if (value == "off")
+                {
+                    current_server.autoindex = false; // Server level autoindex
+                }
+            }
 
         
             else if (key == "cgi_path")
@@ -602,6 +602,39 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 std::cout << "code: " << status_code << '\n';
                 std::cout << "path redirect: " << current_location.return_path[status_code] << '\n';*/
             }
+             else
+            {
+                std::cerr << "Error: Unknown key '" << key << "' in server block." << std::endl;
+                return false;
+            }
+        }
+        else if (in_location_block)
+        {
+            // Handle location-level configuration options
+            if (key == "autoindex")
+            {
+                std::string value;
+                iss >> value;
+
+                if (value == "on")
+                {
+                    current_location.autoindex = true; // Location level autoindex
+                }
+                else if (value == "off")
+                {
+                    current_location.autoindex = false; // Location level autoindex
+                }
+            }
+            else
+            {
+                std::cerr << "Error: Unexpected key '" << key << "' in location block." << std::endl;
+                return false;
+            }
+        }
+         else
+        {
+            std::cerr << "Error: Unexpected line: " << line << std::endl;
+            return false;
         }
     }
 
@@ -643,6 +676,7 @@ void printServerConfig(const ServerConfig &server)
     std::cout << "Host: " << server.host << std::endl;
     std::cout << "Root: " << server.root << std::endl;
     std::cout << "Client Max Body Size: " << server.client_max_body_size << std::endl;
+     std::cout << "    Autoindex: " << (server.autoindex ? "on" : "off") << std::endl;
 
     std::cout << "Index: ";
     for (std::vector<std::string>::const_iterator it = server.index.begin(); it != server.index.end(); ++it)
