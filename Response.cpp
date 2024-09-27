@@ -147,7 +147,6 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 	std::vector<std::string>::iterator it_location_index;
 	std::ifstream inputFile;
 	std::string indexPath, tmp_path, location_path, line;
-	std::string tmpIndex = "";
 	std::stringstream ss;
 	bool location_index = true;
 	bool server_index = true;
@@ -217,13 +216,8 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 						std::cout << "Location FilePath: " << indexPath << '\n';
 						if (isExists(indexPath))
 						{
-							if (access(indexPath.c_str(), R_OK) != 0 && tmpIndex.empty() == true)
-								tmpIndex = indexPath;
-							else
-							{
-								this->readFile(indexPath, reqPath, socket);
-								return true;
-							}
+							this->readFile(indexPath, reqPath, socket);
+							return true;
 						}
 					}
 				}
@@ -241,23 +235,11 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 				std::cout << "Server FilePath: " << indexPath << '\n';
 				if (isExists(indexPath))
 				{
-					if (access(indexPath.c_str(), R_OK) != 0 && tmpIndex.empty() == true)
-						tmpIndex = indexPath;
-					else
-					{
-						this->readFile(indexPath, reqPath, socket);
-						return true;
-					}
+					this->readFile(indexPath, reqPath, socket);
+					return true;
 				}
 			}
 		}
-		if (tmpIndex.empty() != true)
-		{
-			this->readFile(tmpIndex, reqPath, socket);
-			return true;
-		}
-		else
-		{
 			std::cout << "else path: " << path << '\n';
 			std::vector<Location>::iterator it_location = serverBlock->locations.begin();
 			for (;it_location != serverBlock->locations.end(); it_location++)
@@ -268,11 +250,32 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 				{
 					if (it_location->autoindex == true)
 					{
-						body = List_file(path);
+						body = List_file(path, reqPath);
 						std::cout << body << '\n';
 						return true;
 					}
 				}
+			}
+		if (indexPath.empty() != true)
+		{
+			this->readFile(indexPath, reqPath, socket);
+			return true;
+		}
+		else
+		{
+			std::cout << "404 detected..\n";
+			tmp_path = filterSlashes(serverBlock->root + "/" + serverBlock->error_pages[404]);
+			std::cout << "tmp_path: " << tmp_path << '\n';
+			if (serverBlock->error_pages[404].empty() || access(tmp_path.c_str(), R_OK) != 0)
+			{
+				this->buildHttpCode(404, socket);
+				return false;
+			}
+			else
+			{
+				this->buildStatusLine(404);
+				this->readFile(tmp_path, reqPath, socket);
+				return true;
 			}
 		}
 	}
