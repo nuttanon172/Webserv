@@ -14,6 +14,8 @@ private:
 	std::string header;
 	std::string body;
 	std::string message;
+	std::string fileName;
+	std::string content_type;
 	ServerConfig *serverBlock;
 
 public:
@@ -32,6 +34,7 @@ public:
 	void serveFile(std::string &path, std::string &reqPath, int socket);
 	bool readFile(std::string &path, std::string &reqPath, int socket);
 	void redirectPath(Request *req, int code, int socket, std::string path);
+	void initContentType();
 	bool isMethodAllow(std::string &method, std::string path);
 	void serveCGI(std::string cgi_response, int socket);
 
