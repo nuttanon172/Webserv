@@ -33,6 +33,7 @@ Client::~Client()
 bool Client::buildResponse()
 {
 	std::stringstream ss;
+	int status;
 	(void)serverBlock;
 
 	if (req->parseRequestLine() == false)
@@ -54,8 +55,12 @@ bool Client::buildResponse()
 	{
 		if (check_cgi())
 		{
-			if (!req->parseBody()){
-				resp->buildHttpCode(400, socket);
+			if ((status = req->parseBody()) != BODY_SUCCESS)
+			{
+				if (status == BODY_EXCEED)
+					resp->buildHttpCode(413, socket);
+				else if (status == BODY_UNMATCH)
+					resp->buildHttpCode(400, socket);
 				return (true);
 			}
 			this->getResponse()->serveCGI(this->cgi->init_cgi(req), socket);

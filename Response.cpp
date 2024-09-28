@@ -56,7 +56,6 @@ void Response::buildHeaders()
 	if (serverBlock->server_name.empty() != true)
 		ss << "Server: " << serverBlock->server_name << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
-	// ss << "Keep-Alive: timeout=6, max=2\r\n"; no directive require
 	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
 	ss << "Content-Length: " << body.size() << "\r\n";
 	ss << "\r\n";

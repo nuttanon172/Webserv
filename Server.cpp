@@ -103,8 +103,7 @@ bool Server::identifySocket(int port, ServerConfig &serverBlock)
 
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET; // ipv4
-	if (serverBlock.host == "127.0.0.1" || serverBlock.host == "0.0.0.0")
-		address.sin_addr.s_addr = INADDR_ANY;
+	inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
 	address.sin_port = htons(port);
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{

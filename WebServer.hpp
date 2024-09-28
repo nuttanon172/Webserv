@@ -3,6 +3,10 @@
 
 #define TIME_OUT 50000
 
+#define BODY_SUCCESS 0
+#define BODY_EXCEED 1
+#define BODY_UNMATCH 2
+
 #define DEFAULT "\033[0m"
 #define GREEN "\033[1;32m"
 #define YELLOW "\033[1;33m"

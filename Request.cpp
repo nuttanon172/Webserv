@@ -107,7 +107,7 @@ bool Request::parseHttpHeaders(std::string &serverName)
 	return true;
 }
 
-bool Request::parseBody()
+int Request::parseBody()
 {
 	std::string buffer;
 	std::string key;
@@ -130,21 +130,23 @@ bool Request::parseBody()
 	// std::cout << "parsebody: \n" << body.str() << std::endl;
 	std::cout << "content-Lenght: " << i <<std::endl;
 	if (ft_stost(header_map["Content-Length"]) != i)
-		return (false);
+		return (BODY_UNMATCH);
 	std::vector<Location>::iterator it_location = serverBlock->locations.begin();
 	for (;it_location != serverBlock->locations.end();it_location++)
 	{
 		if (getReqPath() == it_location->path || getReqPath() == it_location->path + "/")
 		{
-			if (!it_location->client_max_body_size && !serverBlock->client_max_body_size)
-				return (true);
+			if (!it_location->client_max_body_size)
+				return (BODY_SUCCESS);
 			else if (it_location->client_max_body_size  && it_location->client_max_body_size >= i)
-				return (true);
+				return (BODY_SUCCESS);
 		}
 	}
-	if (serverBlock->client_max_body_size && serverBlock->client_max_body_size >= i)
-		return (true);
-	return (false);
+	if (!serverBlock->client_max_body_size)
+		return (BODY_SUCCESS);
+	else if (serverBlock->client_max_body_size && serverBlock->client_max_body_size >= i)
+		return (BODY_SUCCESS);
+	return (BODY_EXCEED);
 }
 
 bool Request::isMultipart()

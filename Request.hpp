@@ -34,7 +34,7 @@ public:
 	std::string makePath(std::string &dest);
 	bool parseRequestLine();
 	bool parseHttpHeaders(std::string &serverName);
-	bool parseBody();
+	int parseBody();
 	bool isMultipart();
 	bool isCorrectHost();
 };

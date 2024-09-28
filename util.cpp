@@ -223,7 +223,7 @@ std::string List_file(std::string path, std::string reqPath)
             ss << "<li>";
 
             if (S_ISDIR(statbuf.st_mode)) {
-                ss << "<a href=\"?dir=" << reqPath << entry->d_name << "/\">" << entry->d_name << "/</a>\n";
+                ss << "<a href=\"" << reqPath << entry->d_name << "/\">" << entry->d_name << "/</a>\n";
             } else {
                 ss << "<a href=\"" << reqPath << entry->d_name << "\">" << entry->d_name << "</a>\n";
             }

@@ -26,7 +26,6 @@ int main(int ac, char **av)
 		return EXIT_FAILURE;
 	}
 	av[1] ? *pathConfig = av[1] : *pathConfig = "./default.config";
-	/* Example config */
 	/* Start Server here*/
 	Server *mainServer = new Server(*pathConfig);
 	serverHandler = mainServer;
