@@ -170,10 +170,9 @@ std::string trim(const std::string& s) {
     return result;
 }
 
-bool isValidrange(int port, int min, int max)
+bool isValidrange(int nbr, int min, int max)
 {
-    // Check if the port is in the range 8000-9000
-    return port >= min && port <= max;
+    return nbr >= min && nbr <= max;
 }
 
 bool isNumber(const std::string &s)
@@ -534,18 +533,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 std::string bodysize;
                 iss >> bodysize;
                 size_t sizetbodysize = stringToST(bodysize);
-
-                if (sizetbodysize <= 0)
-                {
-                    std::cerr << "Error: Invalid client_max_body_size value." << std::endl;
-                    return false;
-                }
-
-                if (!isValidrange(sizetbodysize, 0, 3000000))
-                {
-                    std::cerr << "Error: Size '" << sizetbodysize << "' is out of valid range." << std::endl;
-                    return false;
-                }
 
                 if (in_location_block)
                 {

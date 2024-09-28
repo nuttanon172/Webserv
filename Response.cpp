@@ -56,8 +56,7 @@ void Response::buildHeaders()
 	if (serverBlock->server_name.empty() != true)
 		ss << "Server: " << serverBlock->server_name << "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
-	// ss << "Keep-Alive: timeout=6, max=2\r\n"; no directive require
-	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
+	ss << "Content-Type: " << content_type << "\r\n";
 	ss << "Content-Length: " << body.size() << "\r\n";
 	ss << "\r\n";
 	header = ss.str().c_str();
@@ -73,7 +72,6 @@ void Response::buildHeadersRedirect(std::string host, std::string &path)
 	ss << "Location: " << host << "\r\n";
 	ss << "Date: " + getCurrentTime() + "\r\n";
 	ss << "Connection: Keep-Alive\r\n";
-	ss << "Content-Type: text/html; charset=UTF-8" << "\r\n";
 	ss << "Content-Length: 0" << "\r\n";
 	ss << "\r\n";
 	header = ss.str().c_str();
@@ -145,9 +143,10 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 	std::vector<Location>::iterator it_location;
 	std::vector<std::string>::iterator it_server_index;
 	std::vector<std::string>::iterator it_location_index;
-	std::ifstream inputFile;
-	std::string indexPath, tmp_path, location_path, line;
+	std::string indexPath, tmp_path, location_path;
 	std::stringstream ss;
+	size_t nbyte;
+	int fd;
 	bool location_index = true;
 	bool server_index = true;
 
@@ -281,12 +280,21 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 	}
 	else
 	{
-		inputFile.open(path.c_str());
+		fileName = path;
+		this->initContentType();
+		std::cout << "path: " << path << '\n';
+		fd = open(path.c_str(), O_RDONLY);
+		if (fd < 0)
+		{
+			this->buildHttpCode(500, socket);
+			return false;
+		}
 		std::cout << "open file " << path << '\n';
 	}
-	while (std::getline(inputFile, line))
-		ss << line << "\r\n";
-	body = ss.str();
+	std::vector<char> buffer(BUFFER_SIZE);
+	while ((nbyte = read(fd, buffer.data(), BUFFER_SIZE)) > 0)
+		body.append(buffer.data(), nbyte);
+	close(fd);
 	return true;
 }
 
@@ -335,7 +343,51 @@ void Response::serveCGI(std::string cgi_response, int socket)
 		buildHeaders();
 	// buildHeaders();
 	buildHttpMessages();
-	std::cout << "----------------\n"
-			  << message.c_str() << std::endl;
+	//std::cout << "----------------\n"
+	//		  << message.c_str() << std::endl;
 	send(socket, message.c_str(), message.size(), 0);
 }
+
+void Response::initContentType()
+{
+    size_t pos = fileName.length();
+
+    if (fileName.find(".html", pos - 5) != std::string::npos || fileName.find(".htm", pos - 4) != std::string::npos)
+        content_type = "text/html";
+    else if (fileName.find(".txt", pos - 4) != std::string::npos)
+        content_type = "text/plain";
+    else if (fileName.find(".css", pos - 4) != std::string::npos)
+        content_type = "text/css";
+    else if (fileName.find(".js", pos - 3) != std::string::npos)
+        content_type = "application/javascript";
+    else if (fileName.find(".json", pos - 5) != std::string::npos)
+        content_type = "application/json";
+    else if (fileName.find(".xml", pos - 4) != std::string::npos)
+        content_type = "application/xml";
+    // Image Files
+    else if (fileName.find(".jpg", pos - 4) != std::string::npos || fileName.find(".jpeg", pos - 5) != std::string::npos)
+        content_type = "image/jpeg";
+    else if (fileName.find(".png", pos - 4) != std::string::npos)
+        content_type = "image/png";
+    else if (fileName.find(".gif", pos - 4) != std::string::npos)
+        content_type = "image/gif";
+    else if (fileName.find(".bmp", pos - 4) != std::string::npos)
+        content_type = "image/bmp";
+    else if (fileName.find(".webp", pos - 5) != std::string::npos)
+        content_type = "image/webp";
+    else if (fileName.find(".svg", pos - 4) != std::string::npos)
+        content_type = "image/svg+xml";
+    else if (fileName.find(".ico", pos - 4) != std::string::npos)
+        content_type = "image/x-icon";
+    // Application Files
+    else if (fileName.find(".pdf", pos - 4) != std::string::npos)
+        content_type = "application/pdf";
+    else if (fileName.find(".zip", pos - 4) != std::string::npos)
+        content_type = "application/zip";
+    else if (fileName.find(".gz", pos - 3) != std::string::npos)
+        content_type = "application/gzip";
+    // Default
+	else 
+        content_type = "text/plain"; // Fallback for unknown file types
+}
+
