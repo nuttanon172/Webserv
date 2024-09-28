@@ -16,6 +16,8 @@
 bool checkKeywordduplicate(const std::string& key, const std::string validKeywords[], int size) {
      if (key =="}" || key =="{")
             return true;
+     if (key == "listen"){
+            return true;}
     for (int i = 0; i < size; ++i) {
         if (key == validKeywords[i]) {
             return true;
@@ -36,7 +38,7 @@ bool checkserverlocationkeyworddup(const std::string& filename) {
     int location_status = 0;
 
     const std::string valid_server_keywords[] = {
-        "server_name", "root", "client_max_body_size", "index", "error_page", "autoindex"
+        "listen","server_name", "root", "client_max_body_size", "index", "error_page", "autoindex"
     };
 
     const std::string valid_location_keywords[] = {
@@ -101,7 +103,8 @@ bool checkserverlocationkeyworddup(const std::string& filename) {
                     std::cerr << "Duplicate server keyword \"" << key << "\" found at line: " << line << std::endl;
                     return false;  // Return false if duplicate server keyword
                 }
-                serverKeywords.insert(key);
+                if (key != "listen")
+                     serverKeywords.insert(key);
             }
             // Check valid location keywords
             else if (location_status == 2) {
@@ -480,9 +483,14 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
         return false;
     }
         
-    bool result = checkserverlocationkeyworddup(filename);
+    if (!checkserverlocationkeyworddup(filename)) {
+        
+        std::cout << "Duplicate keywords detected" << std::endl;
+        return false;
+    }
+
     
-    if (result) {
+    if (checkserverlocationkeyworddup(filename)) {
         std::cout << "No duplicate keywords found." << std::endl;
     } else {
         std::cout << "Duplicate keywords detected." << std::endl;
@@ -1047,4 +1055,3 @@ bool validateConfig(const ServerConfig &server)
 
     return true;
 }
-
