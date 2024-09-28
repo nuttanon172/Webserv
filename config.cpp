@@ -7,6 +7,22 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cctype>  
+#include <set>
+#include <map>
+#include <vector>
+
+
+
+bool checkKeywordduplicate(const std::string& key, const std::string validKeywords[], int size) {
+     if (key =="}" || key =="{")
+            return true;
+    for (int i = 0; i < size; ++i) {
+        if (key == validKeywords[i]) {
+            return true;
+        }
+    }
+    return false;
+}
 
 // Function to check if a keyword is valid
     bool checkKeyword(const std::string& keyword, const std::string valid_keywords[], size_t keyword_count) {
@@ -14,6 +30,111 @@
             return true;
         return std::find(valid_keywords, valid_keywords + keyword_count, keyword) != valid_keywords + keyword_count;
     }
+
+bool checkserverlocationkeyworddup(const std::string& filename) {
+    int server_status = 0;
+    int location_status = 0;
+
+    const std::string valid_server_keywords[] = {
+        "server_name", "root", "client_max_body_size", "index", "error_page", "autoindex"
+    };
+
+    const std::string valid_location_keywords[] = {
+        "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"
+    };
+
+    std::ifstream config_file(filename);
+    if (!config_file.is_open()) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return false;
+    }
+
+    std::string line;
+    std::set<std::string> serverKeywords;
+    std::set<std::string> locationKeywords;
+
+    while (std::getline(config_file, line)) {
+        std::size_t comment_pos = line.find('#');
+        if (comment_pos != std::string::npos) {
+            line = line.substr(0, comment_pos);
+        }
+
+        line = trim(line);
+        if (line.empty()) continue;
+
+        std::istringstream iss(line);
+        std::string key;
+        iss >> key;
+
+        // If 'server' keyword is found
+        if (key == "server" && server_status == 0) {
+            server_status = 1;  // Server block detected, update status
+            serverKeywords.clear(); // Reset for new server block
+        }
+        // If '{' is found
+        if (key == "{") {
+            if (server_status == 1 && location_status == 0) {
+                server_status = 2;  // Entering server block
+            } else if (server_status == 2 && location_status == 1) {
+                location_status = 2;  // Entering location block
+                locationKeywords.clear(); // Reset for new location block
+            }
+        }
+
+        // If 'location' keyword is found
+        if (key == "location" && server_status == 2 && location_status == 0) {
+            location_status = 1;  // Entering location declaration
+            locationKeywords.clear(); // Reset for new location declaration
+        }
+
+        // Handle keywords inside server or location blocks
+        if (server_status == 2) {
+            // Check valid server keywords
+            if (location_status == 0) {
+                if (!checkKeywordduplicate(key, valid_server_keywords, sizeof(valid_server_keywords) / sizeof(std::string))) {
+                    std::cerr << "Invalid server keyword: " << line << std::endl;
+                    return false;  // Return false if invalid server keyword
+                }
+
+                // Check for duplicates in server keywords
+                if (serverKeywords.count(key)) {
+                    std::cerr << "Duplicate server keyword \"" << key << "\" found at line: " << line << std::endl;
+                    return false;  // Return false if duplicate server keyword
+                }
+                serverKeywords.insert(key);
+            }
+            // Check valid location keywords
+            else if (location_status == 2) {
+                if (!checkKeywordduplicate(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string))) {
+                    std::cerr << "Invalid location keyword: " << line << std::endl;
+                    return false;  // Return false if invalid location keyword
+                }
+
+                // Check for duplicates in location keywords
+                if (locationKeywords.count(key)) {
+                    std::cerr << "Duplicate location keyword \"" << key << "\" found at line: " << line << std::endl;
+                    return false;  // Return false if duplicate location keyword
+                }
+                locationKeywords.insert(key);
+            }
+        }
+
+        // If '}' is found
+        if (key == "}") {
+            if (location_status == 2) {
+                location_status = 0;  // Exiting location block
+            } else if (server_status == 2) {
+                server_status = 0;  // Exiting server block
+            }
+        }
+    }
+
+    config_file.close();
+    return true;  // Return true if no invalid keywords or duplicates were found
+}
+
+
+
 // Parse configuration file and return bool
 bool checkserverlocationkeyword(const std::string& filename) {
     int server_status = 0;
@@ -358,7 +479,15 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
         std::cout << "set wrong position server /location block" << std::endl;
         return false;
     }
+        
+    bool result = checkserverlocationkeyworddup(filename);
     
+    if (result) {
+        std::cout << "No duplicate keywords found." << std::endl;
+    } else {
+        std::cout << "Duplicate keywords detected." << std::endl;
+        return false;
+    }
 
     std::string line;
     ServerConfig current_server;
@@ -918,3 +1047,4 @@ bool validateConfig(const ServerConfig &server)
 
     return true;
 }
+
