@@ -8,6 +8,107 @@
 #include <algorithm>
 #include <cctype>  
 
+// Function to check if a keyword is valid
+    bool checkKeyword(const std::string& keyword, const std::string valid_keywords[], size_t keyword_count) {
+        if (keyword =="}" || keyword =="{")
+            return true;
+        return std::find(valid_keywords, valid_keywords + keyword_count, keyword) != valid_keywords + keyword_count;
+    }
+// Parse configuration file and return bool
+bool checkserverlocationkeyword(const std::string& filename) {
+    int server_status = 0;
+    int location_status = 0;
+
+
+    const std::string valid_server_keywords[] = {
+        "listen", "server_name", "host", "root", "client_max_body_size", "index", "error_page", "autoindex"
+    };
+
+    const std::string valid_location_keywords[] = {
+    "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"
+    };
+
+    std::ifstream config_file(filename);
+    if (!config_file.is_open()) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(config_file, line)) {
+        std::size_t comment_pos = line.find('#');
+        if (comment_pos != std::string::npos)
+        {
+            line = line.substr(0, comment_pos);
+        }
+        
+        if (!line.empty() && line[line.size() - 1] == ';')
+        {
+            line = line.substr(0, line.size() - 1);
+        }
+
+         line = trim(line);
+
+        if (line.empty()) continue;
+
+        std::string::reverse_iterator rit = line.rbegin();
+        while (rit != line.rend() && std::isspace(*rit))
+        {
+            rit = std::string::reverse_iterator(line.erase((++rit).base()));
+        }
+        std::istringstream iss(line);
+        std::string key;
+        iss >> key;
+
+        // If 'server' keyword is found
+        if (key == "server" && server_status == 0) {
+            server_status = 1;  // Server block detected, update status
+        }
+        // If '{' is found
+        if (key == "{") {
+            if (server_status == 1 && location_status == 0) {
+                server_status = 2;  // Entering server block
+            } else if (server_status == 2 && location_status == 1) {
+                location_status = 2;  // Entering location block
+            }
+        }
+
+        // If 'location' keyword is found
+        if (key == "location" && server_status == 2 && location_status == 0) {
+            location_status = 1;  // Entering location declaration
+        }
+
+        // Handle keywords inside server or location blocks
+        if (server_status == 2) {
+            // Check valid server keywords
+            if (location_status == 0) {
+                if (!checkKeyword(key, valid_server_keywords, sizeof(valid_server_keywords) / sizeof(std::string))) {
+                    std::cerr << "Invalid server keyword: " << line << std::endl;
+                    return false;  // Return false if invalid server keyword
+                }
+            }
+            // Check valid location keywords
+            else if (location_status == 2) {
+                if (!checkKeyword(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string))) {
+                    std::cerr << "Invalid location keyword: " << line << std::endl;
+                    return false;  // Return false if invalid location keyword
+                }
+            }
+        }
+
+        // If '}' is found
+        if (key == "}") {
+            if (location_status == 2) {
+                location_status = 0;  // Exiting location block
+            } else if (server_status == 2) {
+                server_status = 0;  // Exiting server block
+            }
+        }
+    }
+
+    config_file.close();
+    return true;  // Return true if no invalid keywords were found
+}
 
 // Function to check if a line starts with a certain keyword
 bool startsWith(const std::string& line, const std::string& keyword) {
@@ -132,6 +233,13 @@ bool checkBracesOnSeparateLine(const std::string& filename) {
 
     while (std::getline(configFile, line)) {
         lineNum++;
+
+        // Remove comments (everything after '#')
+        std::size_t comment_pos = line.find('#');
+        if (comment_pos != std::string::npos)
+        {
+            line = line.substr(0, comment_pos);
+        }
         
         // Remove leading/trailing spaces for cleaner checks
         std::string trimmedLine;
@@ -192,17 +300,17 @@ bool isNumber(const std::string &s)
     return true;
 }
 
-int stringToInt(const std::string &str)
-{
+int stringToInt(const std::string &str) {
     std::istringstream iss(str);
     int num;
+    char leftover;
+
+    // Try to extract an integer
     iss >> num;
 
-    // Check if the conversion succeeded
-    if (iss.fail())
-    {
+    if (iss.fail() || iss.get(leftover)) {
         std::cerr << "Error: invalid integer conversion from string \"" << str << "\"" << std::endl;
-        return 0; // You can decide how to handle the error
+        return 0;
     }
 
     return num;
@@ -218,7 +326,7 @@ size_t stringToST(const std::string &str)
     if (iss.fail())
     {
         std::cerr << "Error: invalid integer conversion from string \"" << str << "\"" << std::endl;
-        return 0; // You can decide how to handle the error
+        return 0;
     }
 
     return num;
@@ -244,6 +352,13 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
         std::cout << "Configuration file failed location block checks." << std::endl;
         return false;
     }
+
+       if (!checkserverlocationkeyword(filename)) {
+        
+        std::cout << "set wrong position server /location block" << std::endl;
+        return false;
+    }
+    
 
     std::string line;
     ServerConfig current_server;
@@ -490,6 +605,11 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                             {
                                 current_location.autoindex = false;
                             }
+                            else {
+                                std::cerr << "Error: autoindex '" << value << " not correct --> (on / off)" << std::endl;
+                                return false;
+                            } 
+
                 }
                 else
                 {
@@ -501,6 +621,10 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                             {
                                 current_server.autoindex = false;
                             }
+                              else {
+                                std::cerr << "Error: autoindex '" << value << " not correct --> (on / off)" << std::endl;
+                                return false;
+                            } 
                 }
                 
             }
@@ -532,6 +656,11 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             {
                 std::string bodysize;
                 iss >> bodysize;
+                if (!isNumber(bodysize))
+                {
+                    std::cerr << "Error: client_max_body_size '" << bodysize << "' is not a valid number." << std::endl;
+                    return false;
+                }
                 size_t sizetbodysize = stringToST(bodysize);
 
                 if (in_location_block)
@@ -573,22 +702,16 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             {
                 int status_code;
                 std::string url;
-
-                // Check if a status code is provided
-                if (!(iss >> status_code))
+                std::string status_text;
+                iss >> status_text;
+                if (!isNumber(status_text))
                 {
-                    // No status code provided, default to 302 (temporary redirect)
-                    status_code = 302;
-
-                    // Make sure to extract the URL after skipping the missing status code
-                    iss.clear();
-                    iss >> url;
+                    std::cerr << "Error: status code '" << status_text << "' is not a valid number." << std::endl;
+                    return false;
                 }
-                else
-                {
-                    // Status code provided, get the URL
-                    iss >> url;
-                }
+                status_code = stringToInt(status_text);
+                iss >> url;
+                
 
                 if (url.empty())
                 {
