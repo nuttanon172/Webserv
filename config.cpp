@@ -45,7 +45,7 @@ bool checkserverlocationkeyworddup(const std::string& filename) {
         "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"
     };
 
-    std::ifstream config_file(filename);
+    std::ifstream config_file(filename.c_str());
     if (!config_file.is_open()) {
         std::cerr << "Failed to open file: " << filename << std::endl;
         return false;
@@ -152,7 +152,7 @@ bool checkserverlocationkeyword(const std::string& filename) {
     "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"
     };
 
-    std::ifstream config_file(filename);
+    std::ifstream config_file(filename.c_str());
     if (!config_file.is_open()) {
         std::cerr << "Failed to open file: " << filename << std::endl;
         return false;

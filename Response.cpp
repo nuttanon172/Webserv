@@ -119,23 +119,33 @@ void Response::buildHttpCode(int code, int socket)
 
 bool Response::isMethodAllow(std::string &method, std::string path)
 {
-	if (serverBlock->locations.empty() != true)
-	{
-		std::vector<Location>::iterator it_location = serverBlock->locations.begin();
-		for (; it_location != serverBlock->locations.end(); it_location++)
-		{
-			if ((path == it_location->path || path == it_location->path + "/") && it_location->allow_methods.empty() != true)
-			{
-				std::map<std::string, bool>::iterator it_allow = it_location->allow_methods.begin();
-				for (; it_allow != it_location->allow_methods.end(); it_allow++)
-				{
-					if (it_allow->first == method && it_allow->second == false)
-						return false;
-				}
-			}
-		}
-	}
-	return true;
+    size_t location_size(0);
+    bool allow(true);
+
+    path = filterSlashes(path + "/");
+    if (serverBlock->locations.empty() != true)
+    {
+        std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+        for (; it_location != serverBlock->locations.end(); it_location++)
+        {
+            if (path.find(filterSlashes(it_location->path + "/")) == 0 && it_location->allow_methods.empty() != true)
+            {
+                if (location_size < it_location->path.length())
+                {
+                    location_size = it_location->path.length();
+                    std::map<std::string, bool>::iterator it_allow = it_location->allow_methods.begin();
+                    for (; it_allow != it_location->allow_methods.end(); it_allow++)
+                    {
+                        if (it_allow->first == method && it_allow->second == false)
+                            allow = false;
+                        if (it_allow->first == method && it_allow->second == true)
+                            allow = true;
+                    }
+                }
+            }
+        }
+    }
+    return allow;
 }
 
 bool Response::readFile(std::string &path, std::string &reqPath, int socket)
