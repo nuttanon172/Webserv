@@ -101,24 +101,26 @@ bool Client::check_cgi()
 		return (false);
 
 	std::vector<Location>::iterator it = serverBlock->locations.begin();
-	for(; it != serverBlock->locations.end(); it++)
+	for (; it != serverBlock->locations.end(); it++)
 	{
-		if (it->path.length() >= 4 && it->path.compare(it->path.length() - 4, 4, "/cgi") == 0) {
-			std::cout << "path:" << it->path <<std::endl;
+		if (it->path.length() >= 4 && it->path.compare(it->path.length() - 4, 4, "/cgi") == 0)
+		{
+			std::cout << "path:" << it->path << std::endl;
 			std::vector<std::string>::iterator it1 = it->cgi_ext.begin();
-			for(; it1 != it->cgi_ext.end(); it1++)
+			for (; it1 != it->cgi_ext.end(); it1++)
 			{
-				if (*it1 == ".php"){
-					std::cout <<"cgi ext:" << *it1 <<std::endl;
+				if (*it1 == ".php")
+				{
+					std::cout << "cgi ext:" << *it1 << std::endl;
 					std::vector<std::string>::iterator it2 = it->cgi_path.begin();
-					for(; it2 != it->cgi_path.end(); it2++)
+					for (; it2 != it->cgi_path.end(); it2++)
 					{
-						std::cout <<"cgi check inter:" << *it2 <<std::endl;
-						if(access((*it2).c_str(), X_OK) == 0)
+						std::cout << "cgi check inter:" << *it2 << std::endl;
+						if (access((*it2).c_str(), X_OK) == 0)
 						{
 							std::cout << "cgi interpeter" << *it2 << std::endl;
 							std::vector<std::string>::iterator it3 = it->index.begin();
-							for(; it3 != it->index.end(); it3++)
+							for (; it3 != it->index.end(); it3++)
 							{
 								if ((*it3).length() >= 4 && (*it3).compare((*it3).length() - 4, 4, *it1) == 0)
 								{
@@ -132,7 +134,7 @@ bool Client::check_cgi()
 					}
 				}
 			}
-        }
+		}
 	}
 	return false;
 }

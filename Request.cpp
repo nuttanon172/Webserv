@@ -2,7 +2,6 @@
 
 Request::Request(ServerConfig *serverBlock) : serverBlock(serverBlock)
 {
-
 }
 
 Request::Request(const Request &obj)
@@ -127,20 +126,19 @@ int Request::parseBody()
 	}
 	if (count_loop == 1)
 		i--;
-	// std::cout << "parsebody: \n" << body.str() << std::endl;
-	std::cout << "Content-Length: " << i <<std::endl;
+	std::cout << "Content-Length: " << i << std::endl;
 	if (header_map["Content-Length"].empty() && i == 0)
 		return (BODY_SUCCESS);
 	if (ft_stost(header_map["Content-Length"]) != i)
 		return (BODY_UNMATCH);
 	std::vector<Location>::iterator it_location = serverBlock->locations.begin();
-	for (;it_location != serverBlock->locations.end();it_location++)
+	for (; it_location != serverBlock->locations.end(); it_location++)
 	{
 		if (getReqPath() == it_location->path || getReqPath() == it_location->path + "/")
 		{
 			if (!it_location->client_max_body_size)
 				return (BODY_SUCCESS);
-			else if (it_location->client_max_body_size  && it_location->client_max_body_size >= i)
+			else if (it_location->client_max_body_size && it_location->client_max_body_size >= i)
 				return (BODY_SUCCESS);
 		}
 	}
@@ -167,7 +165,7 @@ bool Request::isMultipart()
 }
 
 std::string &Request::getPath()
-{ 
+{
 	return path;
 }
 

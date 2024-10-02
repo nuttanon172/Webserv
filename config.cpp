@@ -1,25 +1,17 @@
 #include "config.hpp"
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <algorithm>
-#include <cctype>  
-#include <set>
-#include <map>
-#include <vector>
 
-
-
-bool checkKeywordduplicate(const std::string& key, const std::string validKeywords[], int size) {
-     if (key =="}" || key =="{")
-            return true;
-     if (key == "listen"){
-            return true;}
-    for (int i = 0; i < size; ++i) {
-        if (key == validKeywords[i]) {
+bool checkKeywordduplicate(const std::string &key, const std::string validKeywords[], int size)
+{
+    if (key == "}" || key == "{")
+        return true;
+    if (key == "listen")
+    {
+        return true;
+    }
+    for (int i = 0; i < size; ++i)
+    {
+        if (key == validKeywords[i])
+        {
             return true;
         }
     }
@@ -27,26 +19,27 @@ bool checkKeywordduplicate(const std::string& key, const std::string validKeywor
 }
 
 // Function to check if a keyword is valid
-    bool checkKeyword(const std::string& keyword, const std::string valid_keywords[], size_t keyword_count) {
-        if (keyword =="}" || keyword =="{")
-            return true;
-        return std::find(valid_keywords, valid_keywords + keyword_count, keyword) != valid_keywords + keyword_count;
-    }
+bool checkKeyword(const std::string &keyword, const std::string valid_keywords[], size_t keyword_count)
+{
+    if (keyword == "}" || keyword == "{")
+        return true;
+    return std::find(valid_keywords, valid_keywords + keyword_count, keyword) != valid_keywords + keyword_count;
+}
 
-bool checkserverlocationkeyworddup(const std::string& filename) {
+bool checkserverlocationkeyworddup(const std::string &filename)
+{
     int server_status = 0;
     int location_status = 0;
 
     const std::string valid_server_keywords[] = {
-        "listen","server_name", "root", "client_max_body_size", "index", "error_page", "autoindex"
-    };
+        "listen", "server_name", "root", "client_max_body_size", "index", "error_page", "autoindex"};
 
     const std::string valid_location_keywords[] = {
-        "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"
-    };
+        "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"};
 
     std::ifstream config_file(filename.c_str());
-    if (!config_file.is_open()) {
+    if (!config_file.is_open())
+    {
         std::cerr << "Failed to open file: " << filename << std::endl;
         return false;
     }
@@ -55,125 +48,144 @@ bool checkserverlocationkeyworddup(const std::string& filename) {
     std::set<std::string> serverKeywords;
     std::set<std::string> locationKeywords;
 
-    while (std::getline(config_file, line)) {
+    while (std::getline(config_file, line))
+    {
         std::size_t comment_pos = line.find('#');
-        if (comment_pos != std::string::npos) {
+        if (comment_pos != std::string::npos)
+        {
             line = line.substr(0, comment_pos);
         }
 
         line = trim(line);
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
 
         std::istringstream iss(line);
         std::string key;
         iss >> key;
 
         // If 'server' keyword is found
-        if (key == "server" && server_status == 0) {
-            server_status = 1;  // Server block detected, update status
+        if (key == "server" && server_status == 0)
+        {
+            server_status = 1;      // Server block detected, update status
             serverKeywords.clear(); // Reset for new server block
         }
         // If '{' is found
-        if (key == "{") {
-            if (server_status == 1 && location_status == 0) {
-                server_status = 2;  // Entering server block
-            } else if (server_status == 2 && location_status == 1) {
-                location_status = 2;  // Entering location block
+        if (key == "{")
+        {
+            if (server_status == 1 && location_status == 0)
+            {
+                server_status = 2; // Entering server block
+            }
+            else if (server_status == 2 && location_status == 1)
+            {
+                location_status = 2;      // Entering location block
                 locationKeywords.clear(); // Reset for new location block
             }
         }
 
         // If 'location' keyword is found
-        if (key == "location" && server_status == 2 && location_status == 0) {
-            location_status = 1;  // Entering location declaration
+        if (key == "location" && server_status == 2 && location_status == 0)
+        {
+            location_status = 1;      // Entering location declaration
             locationKeywords.clear(); // Reset for new location declaration
         }
 
         // Handle keywords inside server or location blocks
-        if (server_status == 2) {
+        if (server_status == 2)
+        {
             // Check valid server keywords
-            if (location_status == 0) {
-                if (!checkKeywordduplicate(key, valid_server_keywords, sizeof(valid_server_keywords) / sizeof(std::string))) {
+            if (location_status == 0)
+            {
+                if (!checkKeywordduplicate(key, valid_server_keywords, sizeof(valid_server_keywords) / sizeof(std::string)))
+                {
                     std::cerr << "Invalid server keyword: " << line << std::endl;
-                    return false;  // Return false if invalid server keyword
+                    return false; // Return false if invalid server keyword
                 }
 
                 // Check for duplicates in server keywords
-                if (serverKeywords.count(key)) {
+                if (serverKeywords.count(key))
+                {
                     std::cerr << "Duplicate server keyword \"" << key << "\" found at line: " << line << std::endl;
-                    return false;  // Return false if duplicate server keyword
+                    return false; // Return false if duplicate server keyword
                 }
                 if (key != "listen")
-                     serverKeywords.insert(key);
+                    serverKeywords.insert(key);
             }
             // Check valid location keywords
-            else if (location_status == 2) {
-                if (!checkKeywordduplicate(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string))) {
+            else if (location_status == 2)
+            {
+                if (!checkKeywordduplicate(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string)))
+                {
                     std::cerr << "Invalid location keyword: " << line << std::endl;
-                    return false;  // Return false if invalid location keyword
+                    return false; // Return false if invalid location keyword
                 }
 
                 // Check for duplicates in location keywords
-                if (locationKeywords.count(key)) {
+                if (locationKeywords.count(key))
+                {
                     std::cerr << "Duplicate location keyword \"" << key << "\" found at line: " << line << std::endl;
-                    return false;  // Return false if duplicate location keyword
+                    return false; // Return false if duplicate location keyword
                 }
                 locationKeywords.insert(key);
             }
         }
 
         // If '}' is found
-        if (key == "}") {
-            if (location_status == 2) {
-                location_status = 0;  // Exiting location block
-            } else if (server_status == 2) {
-                server_status = 0;  // Exiting server block
+        if (key == "}")
+        {
+            if (location_status == 2)
+            {
+                location_status = 0; // Exiting location block
+            }
+            else if (server_status == 2)
+            {
+                server_status = 0; // Exiting server block
             }
         }
     }
 
     config_file.close();
-    return true;  // Return true if no invalid keywords or duplicates were found
+    return true; // Return true if no invalid keywords or duplicates were found
 }
 
-
-
 // Parse configuration file and return bool
-bool checkserverlocationkeyword(const std::string& filename) {
+bool checkserverlocationkeyword(const std::string &filename)
+{
     int server_status = 0;
     int location_status = 0;
 
-
     const std::string valid_server_keywords[] = {
-        "listen", "server_name", "host", "root", "client_max_body_size", "index", "error_page", "autoindex"
-    };
+        "listen", "server_name", "host", "root", "client_max_body_size", "index", "error_page", "autoindex"};
 
     const std::string valid_location_keywords[] = {
-    "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"
-    };
+        "allow_methods", "index", "autoindex", "cgi_path", "cgi_ext", "return", "client_max_body_size", "root"};
 
     std::ifstream config_file(filename.c_str());
-    if (!config_file.is_open()) {
+    if (!config_file.is_open())
+    {
         std::cerr << "Failed to open file: " << filename << std::endl;
         return false;
     }
 
     std::string line;
-    while (std::getline(config_file, line)) {
+    while (std::getline(config_file, line))
+    {
         std::size_t comment_pos = line.find('#');
         if (comment_pos != std::string::npos)
         {
             line = line.substr(0, comment_pos);
         }
-        
+
         if (!line.empty() && line[line.size() - 1] == ';')
         {
             line = line.substr(0, line.size() - 1);
         }
 
-         line = trim(line);
+        line = trim(line);
 
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
 
         std::string::reverse_iterator rit = line.rbegin();
         while (rit != line.rend() && std::isspace(*rit))
@@ -185,64 +197,81 @@ bool checkserverlocationkeyword(const std::string& filename) {
         iss >> key;
 
         // If 'server' keyword is found
-        if (key == "server" && server_status == 0) {
-            server_status = 1;  // Server block detected, update status
+        if (key == "server" && server_status == 0)
+        {
+            server_status = 1; // Server block detected, update status
         }
         // If '{' is found
-        if (key == "{") {
-            if (server_status == 1 && location_status == 0) {
-                server_status = 2;  // Entering server block
-            } else if (server_status == 2 && location_status == 1) {
-                location_status = 2;  // Entering location block
+        if (key == "{")
+        {
+            if (server_status == 1 && location_status == 0)
+            {
+                server_status = 2; // Entering server block
+            }
+            else if (server_status == 2 && location_status == 1)
+            {
+                location_status = 2; // Entering location block
             }
         }
 
         // If 'location' keyword is found
-        if (key == "location" && server_status == 2 && location_status == 0) {
-            location_status = 1;  // Entering location declaration
+        if (key == "location" && server_status == 2 && location_status == 0)
+        {
+            location_status = 1; // Entering location declaration
         }
 
         // Handle keywords inside server or location blocks
-        if (server_status == 2) {
+        if (server_status == 2)
+        {
             // Check valid server keywords
-            if (location_status == 0) {
-                if (!checkKeyword(key, valid_server_keywords, sizeof(valid_server_keywords) / sizeof(std::string))) {
+            if (location_status == 0)
+            {
+                if (!checkKeyword(key, valid_server_keywords, sizeof(valid_server_keywords) / sizeof(std::string)))
+                {
                     std::cerr << "Invalid server keyword: " << line << std::endl;
-                    return false;  // Return false if invalid server keyword
+                    return false; // Return false if invalid server keyword
                 }
             }
             // Check valid location keywords
-            else if (location_status == 2) {
-                if (!checkKeyword(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string))) {
+            else if (location_status == 2)
+            {
+                if (!checkKeyword(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string)))
+                {
                     std::cerr << "Invalid location keyword: " << line << std::endl;
-                    return false;  // Return false if invalid location keyword
+                    return false; // Return false if invalid location keyword
                 }
             }
         }
 
         // If '}' is found
-        if (key == "}") {
-            if (location_status == 2) {
-                location_status = 0;  // Exiting location block
-            } else if (server_status == 2) {
-                server_status = 0;  // Exiting server block
+        if (key == "}")
+        {
+            if (location_status == 2)
+            {
+                location_status = 0; // Exiting location block
+            }
+            else if (server_status == 2)
+            {
+                server_status = 0; // Exiting server block
             }
         }
     }
 
     config_file.close();
-    return true;  // Return true if no invalid keywords were found
+    return true; // Return true if no invalid keywords were found
 }
 
 // Function to check if a line starts with a certain keyword
-bool startsWith(const std::string& line, const std::string& keyword) {
+bool startsWith(const std::string &line, const std::string &keyword)
+{
     return trim(line).find(keyword) == 0;
 }
 
-
-bool checkServerAndLocationBlocks(const std::string& filename) {
+bool checkServerAndLocationBlocks(const std::string &filename)
+{
     std::ifstream configFile(filename.c_str());
-    if (!configFile) {
+    if (!configFile)
+    {
         std::cerr << "Unable to open configuration file: " << filename << std::endl;
         return false;
     }
@@ -255,86 +284,106 @@ bool checkServerAndLocationBlocks(const std::string& filename) {
     int lineNum = 0;
     int openBracesCount = 0;
 
-    while (std::getline(configFile, line)) {
+    while (std::getline(configFile, line))
+    {
         lineNum++;
         std::string trimmedLine = trim(line);
 
         // Ignore empty lines
-        if (trimmedLine.empty()) continue;
+        if (trimmedLine.empty())
+            continue;
 
         // Check for server block start
-        if (!insideServerBlock && startsWith(trimmedLine, "server")) {
+        if (!insideServerBlock && startsWith(trimmedLine, "server"))
+        {
             serverStarted = true;
         }
 
         // Check for opening of server block (brace '{')
-        if (serverStarted && trimmedLine.find('{') != std::string::npos) {
+        if (serverStarted && trimmedLine.find('{') != std::string::npos)
+        {
             insideServerBlock = true;
             serverStarted = false;
             openBracesCount++;
         }
 
         // If inside server block, check for location block start
-        if (insideServerBlock && !insideLocationBlock && startsWith(trimmedLine, "location")) {
+        if (insideServerBlock && !insideLocationBlock && startsWith(trimmedLine, "location"))
+        {
             locationStarted = true;
         }
 
         // Check for opening of location block (brace '{')
-        if (locationStarted && trimmedLine.find('{') != std::string::npos) {
+        if (locationStarted && trimmedLine.find('{') != std::string::npos)
+        {
             insideLocationBlock = true;
             locationStarted = false;
             openBracesCount++;
         }
 
         // Allow for a case where `location` is split across two lines
-        if (locationStarted && trimmedLine.find('{') == std::string::npos) {
+        if (locationStarted && trimmedLine.find('{') == std::string::npos)
+        {
             std::getline(configFile, line);
             lineNum++;
             trimmedLine = trim(line);
-            if (trimmedLine == "{") {
+            if (trimmedLine == "{")
+            {
                 insideLocationBlock = true;
                 locationStarted = false;
                 openBracesCount++;
-            } else {
+            }
+            else
+            {
                 std::cerr << "Error: Missing opening brace for location block, line " << lineNum << std::endl;
                 return false;
             }
         }
 
         // Check for closing of location or server block
-        if (insideLocationBlock || insideServerBlock) {
-            if (trimmedLine == "}") {
+        if (insideLocationBlock || insideServerBlock)
+        {
+            if (trimmedLine == "}")
+            {
                 openBracesCount--;
-                if (insideLocationBlock) {
+                if (insideLocationBlock)
+                {
                     insideLocationBlock = false;
-                } else if (insideServerBlock && openBracesCount == 0) {
+                }
+                else if (insideServerBlock && openBracesCount == 0)
+                {
                     insideServerBlock = false;
                 }
             }
         }
 
         // Error detection: if any config directive appears outside of the server or location blocks
-        if (!insideServerBlock && !insideLocationBlock && !serverStarted && !locationStarted) {
-            if (trimmedLine != "}") { // Allowing braces to close blocks
-                std::cerr << "Error: Directive '" << trimmedLine 
+        if (!insideServerBlock && !insideLocationBlock && !serverStarted && !locationStarted)
+        {
+            if (trimmedLine != "}")
+            { // Allowing braces to close blocks
+                std::cerr << "Error: Directive '" << trimmedLine
                           << "' must be inside a server block, line " << lineNum << std::endl;
                 return false;
             }
         }
 
         // Error detection: location block directive outside server block
-        if (!insideServerBlock && insideLocationBlock) {
+        if (!insideServerBlock && insideLocationBlock)
+        {
             std::cerr << "Error: Location block must be inside a server block, line " << lineNum << std::endl;
             return false;
         }
     }
 
     // Final checks for missing closing braces
-    if (insideServerBlock) {
+    if (insideServerBlock)
+    {
         std::cerr << "Error: Missing closing brace for server block" << std::endl;
         return false;
     }
-    if (insideLocationBlock) {
+    if (insideLocationBlock)
+    {
         std::cerr << "Error: Missing closing brace for location block" << std::endl;
         return false;
     }
@@ -343,19 +392,20 @@ bool checkServerAndLocationBlocks(const std::string& filename) {
     return true; // No errors found
 }
 
-
-
-bool checkBracesOnSeparateLine(const std::string& filename) {
+bool checkBracesOnSeparateLine(const std::string &filename)
+{
     std::ifstream configFile(filename.c_str());
-    if (!configFile) {
+    if (!configFile)
+    {
         std::cerr << "Unable to open configuration file: " << filename << std::endl;
         return false;
     }
 
     std::string line;
-    int lineNum = 0;             // To track line numbers for error reporting
+    int lineNum = 0; // To track line numbers for error reporting
 
-    while (std::getline(configFile, line)) {
+    while (std::getline(configFile, line))
+    {
         lineNum++;
 
         // Remove comments (everything after '#')
@@ -364,20 +414,22 @@ bool checkBracesOnSeparateLine(const std::string& filename) {
         {
             line = line.substr(0, comment_pos);
         }
-        
+
         // Remove leading/trailing spaces for cleaner checks
         std::string trimmedLine;
         size_t firstChar = line.find_first_not_of(" \t");
         if (firstChar != std::string::npos)
             trimmedLine = line.substr(firstChar);
-        
+
         // Check if a brace is on the same line as other characters
-        if (trimmedLine.find('{') != std::string::npos && trimmedLine.length() > 1) {
+        if (trimmedLine.find('{') != std::string::npos && trimmedLine.length() > 1)
+        {
             std::cerr << "Error: '{' must be on its own line at line " << lineNum << std::endl;
             return false;
         }
-        
-        if (trimmedLine.find('}') != std::string::npos && trimmedLine.length() > 1) {
+
+        if (trimmedLine.find('}') != std::string::npos && trimmedLine.length() > 1)
+        {
             std::cerr << "Error: '}' must be on its own line at line " << lineNum << std::endl;
             return false;
         }
@@ -387,13 +439,14 @@ bool checkBracesOnSeparateLine(const std::string& filename) {
     return true; // If no issues were found
 }
 
-
-bool isNotSpace(int ch) {
+bool isNotSpace(int ch)
+{
     return !std::isspace(ch);
 }
 
 // Trim function
-std::string trim(const std::string& s) {
+std::string trim(const std::string &s)
+{
     std::string result = s;
 
     result.erase(result.begin(), std::find_if(result.begin(), result.end(), isNotSpace));
@@ -424,7 +477,8 @@ bool isNumber(const std::string &s)
     return true;
 }
 
-int stringToInt(const std::string &str) {
+int stringToInt(const std::string &str)
+{
     std::istringstream iss(str);
     int num;
     char leftover;
@@ -432,7 +486,8 @@ int stringToInt(const std::string &str) {
     // Try to extract an integer
     iss >> num;
 
-    if (iss.fail() || iss.get(leftover)) {
+    if (iss.fail() || iss.get(leftover))
+    {
         std::cerr << "Error: invalid integer conversion from string \"" << str << "\"" << std::endl;
         return 0;
     }
@@ -465,34 +520,39 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
         return false;
     }
 
-       if (!checkBracesOnSeparateLine(filename)) 
-     {
-         std::cerr << "{ or } must to stay on new line" << filename << std::endl;
+    if (!checkBracesOnSeparateLine(filename))
+    {
+        std::cerr << "{ or } must to stay on new line" << filename << std::endl;
         return false;
-     }
+    }
 
-     if (!checkServerAndLocationBlocks(filename)) {
-        
+    if (!checkServerAndLocationBlocks(filename))
+    {
+
         std::cout << "Configuration file failed location block checks." << std::endl;
         return false;
     }
 
-       if (!checkserverlocationkeyword(filename)) {
-        
+    if (!checkserverlocationkeyword(filename))
+    {
+
         std::cout << "set wrong position server /location block" << std::endl;
         return false;
     }
-        
-    if (!checkserverlocationkeyworddup(filename)) {
-        
+
+    if (!checkserverlocationkeyworddup(filename))
+    {
+
         std::cout << "Duplicate keywords detected" << std::endl;
         return false;
     }
 
-    
-    if (checkserverlocationkeyworddup(filename)) {
+    if (checkserverlocationkeyworddup(filename))
+    {
         std::cout << "No duplicate keywords found." << std::endl;
-    } else {
+    }
+    else
+    {
         std::cout << "Duplicate keywords detected." << std::endl;
         return false;
     }
@@ -726,47 +786,46 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                     }
                 }
             }
-       
+
             else if (key == "autoindex")
             {
                 std::string value;
                 iss >> value;
 
-                 if (in_location_block)
+                if (in_location_block)
                 {
-                             if (value == "on")
-                            {
-                                current_location.autoindex = true;
-                            }
-                            else if (value == "off")
-                            {
-                                current_location.autoindex = false;
-                            }
-                            else {
-                                std::cerr << "Error: autoindex '" << value << " not correct --> (on / off)" << std::endl;
-                                return false;
-                            } 
-
+                    if (value == "on")
+                    {
+                        current_location.autoindex = true;
+                    }
+                    else if (value == "off")
+                    {
+                        current_location.autoindex = false;
+                    }
+                    else
+                    {
+                        std::cerr << "Error: autoindex '" << value << " not correct --> (on / off)" << std::endl;
+                        return false;
+                    }
                 }
                 else
                 {
-                            if (value == "on")
-                            {
-                                current_server.autoindex = true;
-                            }
-                            else if (value == "off")
-                            {
-                                current_server.autoindex = false;
-                            }
-                              else {
-                                std::cerr << "Error: autoindex '" << value << " not correct --> (on / off)" << std::endl;
-                                return false;
-                            } 
+                    if (value == "on")
+                    {
+                        current_server.autoindex = true;
+                    }
+                    else if (value == "off")
+                    {
+                        current_server.autoindex = false;
+                    }
+                    else
+                    {
+                        std::cerr << "Error: autoindex '" << value << " not correct --> (on / off)" << std::endl;
+                        return false;
+                    }
                 }
-                
             }
 
-        
             else if (key == "cgi_path")
             {
                 std::string path;
@@ -819,7 +878,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             else if (key == "allow_methods")
             {
                 std::string method;
-                
+
                 current_location.allow_methods["GET"] = false;
                 current_location.allow_methods["POST"] = false;
                 current_location.allow_methods["DELETE"] = false;
@@ -848,7 +907,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 }
                 status_code = stringToInt(status_text);
                 iss >> url;
-                
 
                 if (url.empty())
                 {
@@ -866,7 +924,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 std::cout << "code: " << status_code << '\n';
                 std::cout << "path redirect: " << current_location.return_path[status_code] << '\n';*/
             }
-             else
+            else
             {
                 std::cerr << "Error: Unknown key '" << key << "' in server block." << std::endl;
                 return false;
@@ -919,8 +977,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
     return true;
 }
 
-
-
 void printServerConfig(const ServerConfig &server)
 {
     std::cout << "Server Configuration:" << std::endl;
@@ -940,7 +996,7 @@ void printServerConfig(const ServerConfig &server)
     std::cout << "Host: " << server.host << std::endl;
     std::cout << "Root: " << server.root << std::endl;
     std::cout << "Client Max Body Size: " << server.client_max_body_size << std::endl;
-     std::cout << "    Autoindex: " << (server.autoindex ? "on" : "off") << std::endl;
+    std::cout << "    Autoindex: " << (server.autoindex ? "on" : "off") << std::endl;
 
     std::cout << "Index: ";
     for (std::vector<std::string>::const_iterator it = server.index.begin(); it != server.index.end(); ++it)
@@ -1042,16 +1098,5 @@ bool validateConfig(const ServerConfig &server)
         std::cerr << "Error: server_name \"" << server.server_name << "\" contains invalid character ':'\n";
         return false;
     }
-
-// \\   for (std::vector<Location>::const_iterator it = server.locations.begin(); it != server.locations.end(); ++it)
-// \\   {
-// \\       std::string full_path = "./" + server.root + it->path;
-// \\       if (!directoryExists(full_path))
-// \\       {
-// \\           std::cerr << "Error: Location root \"" << full_path << "\" does not exist\n";
-// \\           return false;
-// \\       }
-// \\   }
-
     return true;
 }

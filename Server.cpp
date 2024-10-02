@@ -136,7 +136,8 @@ void Server::checkClient()
 {
 	int status;
 
-	std::cout << BLUE << "Webserver is running...\n" << DEFAULT;
+	std::cout << BLUE << "Webserver is running...\n"
+			  << DEFAULT;
 	while (1)
 	{
 		ready_sockets = current_sockets;
@@ -180,7 +181,6 @@ void Server::checkClient()
 					}
 					else
 					{
-						//process_map.insert(std::make_pair(pid, time(NULL)));
 						std::cout << YELLOW << "Webserver waiting for client....\n"
 								  << DEFAULT;
 						closeSocket(socket);
@@ -263,7 +263,8 @@ void Server::closeSocket(int socket)
 		delete client_map[socket];
 		client_map[socket] = NULL;
 		close(socket);
-		std::cout << RED << "Socket: [" << socket << "] closed" << '\n' << DEFAULT; 
+		std::cout << RED << "Socket: [" << socket << "] closed" << '\n'
+				  << DEFAULT;
 	}
 	client_map.erase(socket);
 }

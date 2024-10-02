@@ -37,7 +37,6 @@ public:
 	void initContentType();
 	bool isMethodAllow(std::string &method, std::string path);
 	void serveCGI(std::string cgi_response, int socket);
-
 };
 
 #endif

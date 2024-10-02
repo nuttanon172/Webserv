@@ -119,33 +119,33 @@ void Response::buildHttpCode(int code, int socket)
 
 bool Response::isMethodAllow(std::string &method, std::string path)
 {
-    size_t location_size(0);
-    bool allow(true);
+	size_t location_size(0);
+	bool allow(true);
 
-    path = filterSlashes(path + "/");
-    if (serverBlock->locations.empty() != true)
-    {
-        std::vector<Location>::iterator it_location = serverBlock->locations.begin();
-        for (; it_location != serverBlock->locations.end(); it_location++)
-        {
-            if (path.find(filterSlashes(it_location->path + "/")) == 0 && it_location->allow_methods.empty() != true)
-            {
-                if (location_size < it_location->path.length())
-                {
-                    location_size = it_location->path.length();
-                    std::map<std::string, bool>::iterator it_allow = it_location->allow_methods.begin();
-                    for (; it_allow != it_location->allow_methods.end(); it_allow++)
-                    {
-                        if (it_allow->first == method && it_allow->second == false)
-                            allow = false;
-                        if (it_allow->first == method && it_allow->second == true)
-                            allow = true;
-                    }
-                }
-            }
-        }
-    }
-    return allow;
+	path = filterSlashes(path + "/");
+	if (serverBlock->locations.empty() != true)
+	{
+		std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+		for (; it_location != serverBlock->locations.end(); it_location++)
+		{
+			if (path.find(filterSlashes(it_location->path + "/")) == 0 && it_location->allow_methods.empty() != true)
+			{
+				if (location_size < it_location->path.length())
+				{
+					location_size = it_location->path.length();
+					std::map<std::string, bool>::iterator it_allow = it_location->allow_methods.begin();
+					for (; it_allow != it_location->allow_methods.end(); it_allow++)
+					{
+						if (it_allow->first == method && it_allow->second == false)
+							allow = false;
+						if (it_allow->first == method && it_allow->second == true)
+							allow = true;
+					}
+				}
+			}
+		}
+	}
+	return allow;
 }
 
 bool Response::readFile(std::string &path, std::string &reqPath, int socket)
@@ -172,8 +172,8 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 		it_location_index = it_location->index.begin();
 
 	std::cout << "\tpath: " << path << " " << path[path.size() - 1] << '\n';
-	//std::cout << "\treqPath" << reqPath << '\n';
-	// check if it directory search for index inside else search for index
+	// std::cout << "\treqPath" << reqPath << '\n';
+	//  check if it directory search for index inside else search for index
 	if (path[path.size() - 1] != '/' && isDirectory(path) == true)
 	{
 		path = path + "/";
@@ -249,22 +249,22 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 				}
 			}
 		}
-			std::cout << "else path: " << path << '\n';
-			std::vector<Location>::iterator it_location = serverBlock->locations.begin();
-			for (;it_location != serverBlock->locations.end(); it_location++)
+		std::cout << "else path: " << path << '\n';
+		std::vector<Location>::iterator it_location = serverBlock->locations.begin();
+		for (; it_location != serverBlock->locations.end(); it_location++)
+		{
+			std::cout << "reqPath: " << reqPath << '\n';
+			std::cout << "it_location->path: " << it_location->path << '\n';
+			if (reqPath == it_location->path || reqPath == it_location->path + "/")
 			{
-				std::cout << "reqPath: " << reqPath << '\n';
-				std::cout << "it_location->path: " << it_location->path << '\n';
-				if (reqPath == it_location->path || reqPath == it_location->path + "/")
+				if (it_location->autoindex == true)
 				{
-					if (it_location->autoindex == true)
-					{
-						body = List_file(path, reqPath);
-						std::cout << body << '\n';
-						return true;
-					}
+					body = List_file(path, reqPath);
+					std::cout << body << '\n';
+					return true;
 				}
 			}
+		}
 		if (indexPath.empty() != true)
 		{
 			this->readFile(indexPath, reqPath, socket);
@@ -351,53 +351,49 @@ void Response::serveCGI(std::string cgi_response, int socket)
 	this->body = cgi_response;
 	if (this->body.size() < 34 || this->body.substr(0, 34) != "Content-Description: File Transfer")
 		buildHeaders();
-	// buildHeaders();
 	buildHttpMessages();
-	//std::cout << "----------------\n"
-	//		  << message.c_str() << std::endl;
 	send(socket, message.c_str(), message.size(), 0);
 }
 
 void Response::initContentType()
 {
-    size_t pos = fileName.length();
+	size_t pos = fileName.length();
 
-    if (fileName.find(".html", pos - 5) != std::string::npos || fileName.find(".htm", pos - 4) != std::string::npos)
-        content_type = "text/html";
-    else if (fileName.find(".txt", pos - 4) != std::string::npos)
-        content_type = "text/plain";
-    else if (fileName.find(".css", pos - 4) != std::string::npos)
-        content_type = "text/css";
-    else if (fileName.find(".js", pos - 3) != std::string::npos)
-        content_type = "application/javascript";
-    else if (fileName.find(".json", pos - 5) != std::string::npos)
-        content_type = "application/json";
-    else if (fileName.find(".xml", pos - 4) != std::string::npos)
-        content_type = "application/xml";
-    // Image Files
-    else if (fileName.find(".jpg", pos - 4) != std::string::npos || fileName.find(".jpeg", pos - 5) != std::string::npos)
-        content_type = "image/jpeg";
-    else if (fileName.find(".png", pos - 4) != std::string::npos)
-        content_type = "image/png";
-    else if (fileName.find(".gif", pos - 4) != std::string::npos)
-        content_type = "image/gif";
-    else if (fileName.find(".bmp", pos - 4) != std::string::npos)
-        content_type = "image/bmp";
-    else if (fileName.find(".webp", pos - 5) != std::string::npos)
-        content_type = "image/webp";
-    else if (fileName.find(".svg", pos - 4) != std::string::npos)
-        content_type = "image/svg+xml";
-    else if (fileName.find(".ico", pos - 4) != std::string::npos)
-        content_type = "image/x-icon";
-    // Application Files
-    else if (fileName.find(".pdf", pos - 4) != std::string::npos)
-        content_type = "application/pdf";
-    else if (fileName.find(".zip", pos - 4) != std::string::npos)
-        content_type = "application/zip";
-    else if (fileName.find(".gz", pos - 3) != std::string::npos)
-        content_type = "application/gzip";
-    // Default
-	else 
-        content_type = "text/plain"; // Fallback for unknown file types
+	if (fileName.find(".html", pos - 5) != std::string::npos || fileName.find(".htm", pos - 4) != std::string::npos)
+		content_type = "text/html";
+	else if (fileName.find(".txt", pos - 4) != std::string::npos)
+		content_type = "text/plain";
+	else if (fileName.find(".css", pos - 4) != std::string::npos)
+		content_type = "text/css";
+	else if (fileName.find(".js", pos - 3) != std::string::npos)
+		content_type = "application/javascript";
+	else if (fileName.find(".json", pos - 5) != std::string::npos)
+		content_type = "application/json";
+	else if (fileName.find(".xml", pos - 4) != std::string::npos)
+		content_type = "application/xml";
+	// Image Files
+	else if (fileName.find(".jpg", pos - 4) != std::string::npos || fileName.find(".jpeg", pos - 5) != std::string::npos)
+		content_type = "image/jpeg";
+	else if (fileName.find(".png", pos - 4) != std::string::npos)
+		content_type = "image/png";
+	else if (fileName.find(".gif", pos - 4) != std::string::npos)
+		content_type = "image/gif";
+	else if (fileName.find(".bmp", pos - 4) != std::string::npos)
+		content_type = "image/bmp";
+	else if (fileName.find(".webp", pos - 5) != std::string::npos)
+		content_type = "image/webp";
+	else if (fileName.find(".svg", pos - 4) != std::string::npos)
+		content_type = "image/svg+xml";
+	else if (fileName.find(".ico", pos - 4) != std::string::npos)
+		content_type = "image/x-icon";
+	// Application Files
+	else if (fileName.find(".pdf", pos - 4) != std::string::npos)
+		content_type = "application/pdf";
+	else if (fileName.find(".zip", pos - 4) != std::string::npos)
+		content_type = "application/zip";
+	else if (fileName.find(".gz", pos - 3) != std::string::npos)
+		content_type = "application/gzip";
+	// Default
+	else
+		content_type = "text/plain"; // Fallback for unknown file types
 }
-
