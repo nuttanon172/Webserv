@@ -206,16 +206,36 @@ bool checkserverlocationkeyword(const std::string& filename) {
         if (server_status == 2) {
             // Check valid server keywords
             if (location_status == 0) {
+                std::string valuescheck ;
+                iss >> valuescheck;
+                if (line != "{" && line != "}" )
+                {
+                 if (valuescheck.empty()) // Check if the string is empty
+                 {
+                    std::cerr << "Invalid values of keyword: " << line << std::endl;
+                    return false;  // Return false if invalid server keyword
+                }
                 if (!checkKeyword(key, valid_server_keywords, sizeof(valid_server_keywords) / sizeof(std::string))) {
                     std::cerr << "Invalid server keyword: " << line << std::endl;
                     return false;  // Return false if invalid server keyword
                 }
+                }
             }
             // Check valid location keywords
             else if (location_status == 2) {
-                if (!checkKeyword(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string))) {
+                 std::string valuescheckl ;
+                  iss >> valuescheckl;
+                  if (line != "{" && line != "}" )
+                {
+                  if (valuescheckl.empty()) // Check if the string is empty
+                {
+                    std::cerr << "Invalid values of keyword: " << line << std::endl;
+                    return false;  // Return false if invalid server keyword
+                }
+               else if (!checkKeyword(key, valid_location_keywords, sizeof(valid_location_keywords) / sizeof(std::string))) {
                     std::cerr << "Invalid location keyword: " << line << std::endl;
                     return false;  // Return false if invalid location keyword
+                }
                 }
             }
         }
@@ -601,6 +621,11 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
             }
 
             iss >> current_location.path;
+                 if (current_location.path.empty()) // Check if the string is empty
+                 {
+                    std::cerr << "location values invalid: " << line << std::endl;
+                    return false;  // Return false if invalid server keyword
+                }
             if (current_location.path[0] != '/')
                 current_location.path = "/" + current_location.path;
             std::string next_token;

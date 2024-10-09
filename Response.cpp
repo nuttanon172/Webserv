@@ -390,6 +390,8 @@ void Response::initContentType()
     else if (fileName.find(".ico", pos - 4) != std::string::npos)
         content_type = "image/x-icon";
     // Application Files
+	else if (fileName.find(".mp3", pos - 4) != std::string::npos)
+        content_type = "audio/mpeg";
     else if (fileName.find(".pdf", pos - 4) != std::string::npos)
         content_type = "application/pdf";
     else if (fileName.find(".zip", pos - 4) != std::string::npos)

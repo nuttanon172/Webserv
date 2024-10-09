@@ -175,7 +175,7 @@ std::string CGI::cgi() {
 	if (pid < 0) {
 		perror("fork");
 	}
-	std::cout << "content lenght" << this->contentLenght <<std::endl;
+	//std::cout << "content lenght" << this->contentLenght <<std::endl;
 	if (pid == 0) { // Step 5: Fork a Child Process
 			// Child process
 		dup2(this->pipefd[0], STDIN_FILENO);

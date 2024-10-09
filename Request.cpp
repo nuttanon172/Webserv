@@ -128,7 +128,7 @@ int Request::parseBody()
 	if (count_loop == 1)
 		i--;
 	// std::cout << "parsebody: \n" << body.str() << std::endl;
-	std::cout << "Content-Length: " << i <<std::endl;
+	// std::cout << "Content-Length: " << i <<std::endl;
 	if (header_map["Content-Length"].empty() && i == 0)
 		return (BODY_SUCCESS);
 	if (ft_stost(header_map["Content-Length"]) != i)
