@@ -955,34 +955,6 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 return false;
             }
         }
-        // else if (in_location_block)
-        // {
-        //     // Handle location-level configuration options
-        //     if (key == "autoindex")
-        //     {
-        //         std::string value;
-        //         iss >> value;
-
-        //         if (value == "on" || current_server.autoindex == true)
-        //         {
-        //             current_location.autoindex = true; // Location level autoindex
-        //         }
-        //         else if (value == "off" || current_server.autoindex == false)
-        //         {
-        //             current_location.autoindex = false; // Location level autoindex
-        //         }
-        //     }
-        //     else
-        //     {
-        //         std::cerr << "Error: Unexpected key '" << key << "' in location block." << std::endl;
-        //         return false;
-        //     }
-        // }
-        //  else
-        // {
-        //     std::cerr << "Error: Unexpected line: " << line << std::endl;
-        //     return false;
-        // }
     }
 
     // Final validation after loop
