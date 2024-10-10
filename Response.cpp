@@ -386,6 +386,15 @@ void Response::initContentType()
 		content_type = "image/svg+xml";
 	else if (fileName.find(".ico", pos - 4) != std::string::npos)
 		content_type = "image/x-icon";
+	// Audio Files
+	else if (fileName.find(".mp3", pos - 4) != std::string::npos)
+		content_type = "audio/mpeg";
+	else if (fileName.find(".wav", pos - 4) != std::string::npos)
+		content_type = "audio/wav";
+	else if (fileName.find(".ogg", pos - 4) != std::string::npos)
+		content_type = "audio/ogg";
+	else if (fileName.find(".flac", pos - 5) != std::string::npos)
+		content_type = "audio/flac";
 	// Application Files
 	else if (fileName.find(".pdf", pos - 4) != std::string::npos)
 		content_type = "application/pdf";
