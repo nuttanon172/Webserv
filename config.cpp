@@ -696,6 +696,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                 in_location_block = true;
                 location_block_count++;
                 current_location.autoindex = current_server.autoindex;
+                current_location.client_max_body_size = current_server.client_max_body_size;
             }
             else if (next_token.empty())
             {
@@ -709,6 +710,7 @@ bool parseConfigFile(const std::string &filename, std::vector<ServerConfig> &ser
                     in_location_block = true;
                     location_block_count++;
                     current_location.autoindex = current_server.autoindex; // set default of autoindex  by server
+                    current_location.client_max_body_size = current_server.client_max_body_size;
                 }
                 else
                 {
