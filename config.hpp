@@ -2,8 +2,17 @@
 #define CONFIG_HPP
 
 #include <string>
-#include <vector>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <algorithm>
+#include <cctype>
+#include <set>
 #include <map>
+#include <vector>
 
 // Define data structures
 struct Location
@@ -38,6 +47,6 @@ bool validateConfig(const ServerConfig &server);
 int stringToInt(const std::string &str);
 size_t stringToST(const std::string &str);
 void printServerConfig(const ServerConfig &server);
-std::string trim(const std::string& s);
+std::string trim(const std::string &s);
 
 #endif // CONFIG_HPP

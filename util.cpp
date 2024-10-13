@@ -195,36 +195,43 @@ std::string List_file(std::string path, std::string reqPath)
 
     reqPath = filterSlashes(reqPath + "/");
 
-    DIR* dir = opendir(path.c_str());
+    DIR *dir = opendir(path.c_str());
     // ตรวจสอบว่า directory ถูกเปิดสำเร็จหรือไม่
-    if (dir == NULL) {
+    if (dir == NULL)
+    {
         std::cerr << "Error: Could not open directory " << path << std::endl;
         return "<html><body><h1>Error: Could not open directory</h1></body></html>";
     }
 
     ss << "<hr>\n";
-    
+
     ss << "<ul>";
 
     ss << "<li><a href=\"..\">../</a></li>\n";
 
-    struct dirent* entry;
+    struct dirent *entry;
     struct stat statbuf;
-    
+
     // อ่านเนื้อหาใน directory ทีละไฟล์หรือโฟลเดอร์
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(dir)) != NULL)
+    {
         std::string fullPath = path + "/" + entry->d_name;
 
-        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
+        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..")
+        {
             continue;
         }
 
-        if (stat(fullPath.c_str(), &statbuf) == 0) {
+        if (stat(fullPath.c_str(), &statbuf) == 0)
+        {
             ss << "<li>";
 
-            if (S_ISDIR(statbuf.st_mode)) {
+            if (S_ISDIR(statbuf.st_mode))
+            {
                 ss << "<a href=\"" << reqPath << entry->d_name << "/\">" << entry->d_name << "/</a>\n";
-            } else {
+            }
+            else
+            {
                 ss << "<a href=\"" << reqPath << entry->d_name << "\">" << entry->d_name << "</a>\n";
             }
             ss << "</li>\n";
@@ -234,7 +241,7 @@ std::string List_file(std::string path, std::string reqPath)
     ss << "</ul>\n";
 
     ss << "<hr>\n";
-    
+
     ss << "</body>\n";
     ss << "</html>\n";
     // ปิด directory หลังจากใช้งานเสร็จ
