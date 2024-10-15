@@ -29,7 +29,6 @@ public:
 	Server(const Server &obj);
 	Server &operator=(const Server &obj);
 	~Server();
-	void initServer();
 	void startServer();
 	bool initSocket();
 	bool identifySocket(int port, ServerConfig &serverBlock);

@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(const std::string &pathConfig)
+Server::Server(const std::string &pathConfig) : max_socket(0)
 {
 	if (!parseConfigFile(pathConfig, serverBlock))
 	{
@@ -8,7 +8,6 @@ Server::Server(const std::string &pathConfig)
 		exit(EXIT_FAILURE);
 	}
 	// printConfig(serverBlock);
-	initServer();
 }
 
 Server::Server(const Server &obj)
@@ -42,11 +41,6 @@ Server::~Server()
 		delete it->second;
 	waitpid(-1, NULL, WNOHANG);
 	this->shutdownServer();
-}
-
-void Server::initServer()
-{
-	max_socket = 0;
 }
 
 void Server::startServer()
@@ -90,7 +84,7 @@ bool Server::initSocket()
 				close(server_fd);
 				continue;
 			}
-			if (identifySocket(*port_it, *serverBlock_it) == false)
+			if (this->identifySocket(*port_it, *serverBlock_it) == false)
 				return false;
 		}
 	}
@@ -135,6 +129,7 @@ bool Server::identifySocket(int port, ServerConfig &serverBlock)
 void Server::checkClient()
 {
 	int status;
+	pid_t pid;
 
 	std::cout << BLUE << "Webserver is running...\n"
 			  << DEFAULT;
@@ -145,7 +140,7 @@ void Server::checkClient()
 		if (status < 0)
 		{
 			perror("Select Error");
-			exit(EXIT_FAILURE);
+			std::raise(SIGINT);
 		}
 		for (int socket = 0; socket <= max_socket; socket++)
 		{
@@ -155,37 +150,25 @@ void Server::checkClient()
 					this->acceptNewConnection(socket);
 				else
 				{
-					pid_t pid = fork();
-
+					pid = fork();
 					if (pid < 0)
 					{
-						closeSocket(socket);
-						perror("Fork failed");
+						client_map[socket]->getResponse()->buildHttpCode(500, socket);
+						this->closeSocket(socket);
 					}
 					else if (pid == 0)
 					{
 						client_map[socket]->updateTime();
-						if (readRequest(socket) == false)
-						{
+						if (this->readRequest(socket) == true)
+							client_map[socket]->buildResponse();
+						else
 							client_map[socket]->getResponse()->buildStatusLine(400);
-							std::cout << YELLOW << "Webserver waiting for client....\n"
-									  << DEFAULT;
-							closeSocket(socket);
-							exit(0);
-						}
-						if (client_map[socket]->buildResponse() == true)
-							closeSocket(socket);
-						std::cout << YELLOW << "Webserver waiting for client....\n"
-								  << DEFAULT;
-						exit(0);
+						std::raise(SIGINT);
 					}
-					else
-					{
-						std::cout << YELLOW << "Webserver waiting for client....\n"
-								  << DEFAULT;
-						closeSocket(socket);
-						waitpid(-1, NULL, WNOHANG);
-					}
+					std::cout << YELLOW << "Webserver waiting for client....\n"
+							  << DEFAULT;
+					this->closeSocket(socket);
+					waitpid(-1, NULL, WNOHANG);
 				}
 			}
 		}
@@ -238,7 +221,11 @@ bool Server::readRequest(int socket)
 			client_map[socket]->getRequest()->writeStream(buffer, size);
 		/* Check time each socket */
 		if (time(NULL) - start_time > TIME_OUT)
-			return false;
+		{
+			std::cout << "Time out closing socket\n";
+			client_map[socket]->getResponse()->buildHttpCode(408, socket);
+			std::raise(SIGINT);
+		}
 		usleep(100000);
 	}
 	std::cout << "-----------------------------------------------------\n";
@@ -263,22 +250,21 @@ void Server::closeSocket(int socket)
 		delete client_map[socket];
 		client_map[socket] = NULL;
 		close(socket);
-		std::cout << RED << "Socket: [" << socket << "] closed" << '\n'
-				  << DEFAULT;
 	}
 	client_map.erase(socket);
 }
 
 void Server::shutdownServer()
 {
-	for (int i = 0; i < max_socket; i++)
+	for (int i = 0; i <= max_socket; i++)
 	{
 		if (FD_ISSET(i, &listen_sockets)) /* clean listen sockets */
 		{
 			close(i);
 			server_config.erase(i);
+			FD_CLR(i, &listen_sockets);
 		}
-		else
-			closeSocket(i); /* clean client sockets */
+		else if (FD_ISSET(i, &current_sockets))
+			this->closeSocket(i); /* clean client sockets */
 	}
 }

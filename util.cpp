@@ -91,6 +91,7 @@ std::map<int, std::string> initStatus()
     status[403] = "ForBidden";
     status[404] = "Not Found";
     status[405] = "Method Not Allowed";
+    status[408] = "Request Timeout";
     status[413] = "Content Too Large";
     status[422] = "Unprocessable Content";
     status[500] = "Internal Server Error";

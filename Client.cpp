@@ -30,7 +30,7 @@ Client::~Client()
 	delete cgi;
 }
 
-bool Client::buildResponse()
+void Client::buildResponse()
 {
 	std::stringstream ss;
 	int status;
@@ -39,17 +39,17 @@ bool Client::buildResponse()
 	if (req->parseRequestLine() == false)
 	{
 		resp->buildHttpCode(400, socket);
-		return true;
+		return ;
 	}
 	if (req->parseHttpHeaders(serverName) == false)
 	{
 		resp->buildHttpCode(400, socket);
-		return true;
+		return ;
 	}
 	if (resp->isMethodAllow(req->getMethod(), req->getReqPath()) == false)
 	{
 		resp->buildHttpCode(405, socket);
-		return true;
+		return ;
 	}
 	if (this->getResponse()->searchFile(this->getRequest(), socket) == true)
 	{
@@ -61,14 +61,13 @@ bool Client::buildResponse()
 					resp->buildHttpCode(413, socket);
 				else if (status == BODY_UNMATCH)
 					resp->buildHttpCode(400, socket);
-				return (true);
+				return ;
 			}
 			this->getResponse()->serveCGI(this->cgi->init_cgi(req), socket);
 		}
 		else
 			this->getResponse()->serveFile(getRequest()->getPath(), getRequest()->getReqPath(), socket);
 	}
-	return true;
 }
 
 Request *Client::getRequest()

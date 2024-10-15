@@ -1,7 +1,7 @@
 #ifndef WEBSERVER_HPP
 #define WEBSERVER_HPP
 
-#define TIME_OUT 50000
+#define TIME_OUT 500
 
 #define BODY_SUCCESS 0
 #define BODY_EXCEED 1

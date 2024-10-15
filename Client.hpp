@@ -26,7 +26,7 @@ public:
 	~Client();
 	Request *getRequest();
 	Response *getResponse();
-	bool buildResponse();
+	void buildResponse();
 	void updateTime();
 	time_t getLastTime();
 	bool check_cgi();

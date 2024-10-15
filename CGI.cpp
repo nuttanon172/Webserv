@@ -178,7 +178,7 @@ std::string CGI::cgi()
 		if (execve(this->get_intepeter().c_str(), args, environ) == -1)
 		{
 			perror("execve");
-			exit(EXIT_FAILURE);
+			std::raise(SIGINT);
 		}
 	}
 	else
