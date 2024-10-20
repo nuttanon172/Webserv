@@ -16,8 +16,9 @@ Request &Request::operator=(const Request &obj)
 		inputStream << obj.inputStream.rdbuf();
 		body << obj.body.rdbuf();
 		method = obj.method;
-		path = obj.method;
-		req_path = obj.method;
+		path = obj.path;
+		req_path = obj.req_path;
+		protocal = obj.protocal;
 		boundaryStart = obj.boundaryStart;
 		boundaryEnd = obj.boundaryEnd;
 		serverBlock = obj.serverBlock;

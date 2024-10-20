@@ -12,6 +12,21 @@ CGI::CGI(std::string interpeter, std::string script_file)
 	this->script_file = script_file;
 }
 
+CGI::CGI(const CGI &obj)
+{
+	*this = obj;
+}
+
+CGI &CGI::operator=(const CGI &obj)
+{
+	if (this != &obj)
+	{
+		this->interpeter = interpeter;
+		this->script_file = script_file;
+	}
+	return *this;
+}
+
 CGI::~CGI()
 {
 }
@@ -50,6 +65,16 @@ void CGI::set_body(std::stringstream &body)
 	std::stringstream ss;
 	std::string tester;
 	this->body << body.rdbuf();
+}
+
+std::string &CGI::get_interpeter()
+{
+	return this->interpeter;
+}
+
+std::string &CGI::get_script_file()
+{
+	return this->script_file;
 }
 
 std::string CGI::init_cgi(Request *clientreq)
@@ -164,7 +189,7 @@ std::string CGI::cgi()
 	}
 	std::cout << "content lenght" << this->contentLenght << std::endl;
 	if (pid == 0)
-	{	// Step 5: Fork a Child Process
+	{ // Step 5: Fork a Child Process
 		// Child process
 		dup2(this->pipefd[0], STDIN_FILENO);
 		dup2(this->pipeid[1], STDOUT_FILENO);

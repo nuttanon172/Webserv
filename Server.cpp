@@ -30,6 +30,7 @@ Server &Server::operator=(const Server &obj)
 		listen_sockets = obj.listen_sockets;
 		server_config = obj.server_config;
 		client_map = obj.client_map;
+		server_name = obj.server_name;
 	}
 	return *this;
 }
@@ -100,19 +101,9 @@ bool Server::identifySocket(int port, ServerConfig &serverBlock)
 	inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
 	address.sin_port = htons(port);
 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
-	{
-		perror("bind failed");
-		this->shutdownServer();
-		close(server_fd);
-		return false;
-	}
+		return perror("bind failed"), close(server_fd), false;
 	if (listen(server_fd, BACKLOG) < 0)
-	{
-		perror("Listen ERROR");
-		this->shutdownServer();
-		close(server_fd);
-		return false;
-	}
+		return perror("Listen ERROR"), close(server_fd), false;
 	FD_SET(server_fd, &listen_sockets); /* add new socket to set */
 	FD_SET(server_fd, &current_sockets);
 	if (server_fd > max_socket)

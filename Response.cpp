@@ -23,6 +23,8 @@ Response &Response::operator=(const Response &obj)
 		header = obj.header;
 		body = obj.body;
 		message = obj.message;
+		fileName = obj.fileName;
+		content_type = obj.content_type;
 		serverBlock = obj.serverBlock;
 	}
 	return *this;
@@ -290,7 +292,7 @@ bool Response::readFile(std::string &path, std::string &reqPath, int socket)
 	}
 	else
 	{
-		fileName = path;
+		fileName = path; // for appropriate header content-type
 		this->initContentType();
 		std::cout << "path: " << path << '\n';
 		fd = open(path.c_str(), O_RDONLY);

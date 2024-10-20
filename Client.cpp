@@ -19,6 +19,7 @@ Client &Client::operator=(const Client &obj)
 		req = new Request(obj.serverBlock);
 		resp = new Response(obj.serverBlock);
 		serverBlock = obj.serverBlock;
+		cgi = new CGI(obj.cgi->get_interpeter(), obj.cgi->get_script_file());
 	}
 	return *this;
 }

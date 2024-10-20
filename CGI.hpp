@@ -22,6 +22,8 @@ public:
 	std::string env_status;
 	CGI();
 	CGI(std::string interpeter, std::string script_file);
+	CGI(const CGI &obj);
+	CGI &operator=(const CGI &obj);
 	~CGI();
 	std::string cgi();
 	int pipeid[2];
@@ -43,6 +45,8 @@ public:
 	int write_in_chunks(int fd);
 	void gen_env();
 	void get_script();
+	std::string &get_interpeter();
+	std::string &get_script_file();
 private:
 	std::string contentType;
 	std::string contentLenght;
